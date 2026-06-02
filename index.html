@@ -1557,7 +1557,7 @@ async function deleteDriver(id, name) {
   }
 }
 
-// renderDeliveries function removed to focus solely on managing delivery person registrations and profiles.
+// renderDeliveries function removed to focus solely on managing deliverer registrations and profiles.
 
 // ===== INIT =====
 async function init(){
@@ -1566,7 +1566,7 @@ async function init(){
     // Trigger session recovery in Leads DB to ensure token presence for authenticated RLS policies
     const {data:{session:leadsSession}}=await sbLeads.auth.getSession();
     if (!leadsSession) {
-      console.warn('Leads DB session is inactive. Log in again if driver database operations fail.');
+      console.warn('Leads DB session is inactive. Log in again if deliverer database operations fail.');
     }
     cu=session.user;
     document.getElementById('page-login').classList.add('hidden');

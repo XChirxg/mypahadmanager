@@ -88,6 +88,8 @@ body::before{content:'';position:fixed;top:-50px;right:-50px;width:170px;height:
     <div class="tab" onclick="dTab('biz',this)">Businesses</div>
     <div class="tab" onclick="dTab('upload',this)">Bulk Upload</div>
     <div class="tab" onclick="dTab('ads',this)">Ads</div>
+    <div class="tab" onclick="dTab('drivers',this)">Drivers</div>
+    <div class="tab" onclick="dTab('deliveries',this)">Deliveries</div>
     <div class="tab" onclick="dTab('cfg',this)">Settings</div>
   </div>
 
@@ -95,6 +97,8 @@ body::before{content:'';position:fixed;top:-50px;right:-50px;width:170px;height:
   <div class="page hidden" id="tc-biz"></div>
   <div class="page hidden" id="tc-upload"></div>
   <div class="page hidden" id="tc-ads"></div>
+  <div class="page hidden" id="tc-drivers"></div>
+  <div class="page hidden" id="tc-deliveries"></div>
   <div class="page hidden" id="tc-cfg"></div>
 </div>
 
@@ -390,11 +394,13 @@ async function loadAreas(){
 function dTab(t,btn){
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  ['ov','biz','upload','ads','cfg'].forEach(x=>{document.getElementById('tc-'+x).classList.toggle('hidden',x!==t);});
+  ['ov','biz','upload','ads','drivers','deliveries','cfg'].forEach(x=>{document.getElementById('tc-'+x).classList.toggle('hidden',x!==t);});
   if(t==='ov')renderOv();
   else if(t==='biz')renderBiz();
   else if(t==='upload')renderUpload();
   else if(t==='ads')renderAds();
+  else if(t==='drivers')renderDrivers();
+  else if(t==='deliveries')renderDeliveries();
   else if(t==='cfg')renderCfg();
 }
 
@@ -1460,6 +1466,152 @@ async function saveBizCategory() {
   } else {
     loadDrafted();
   }
+}
+
+// ===== DRIVERS & DELIVERIES =====
+async function renderDrivers() {
+  const c = document.getElementById('tc-drivers');
+  c.innerHTML = '<div style="padding:20px;text-align:center;color:var(--t3);">Loading drivers...</div>';
+  
+  const { data, error } = await sbLeads.from('drivers').select('*').order('created_at', { ascending: false });
+  if (error) {
+    c.innerHTML = `<div style="padding:20px;color:red;">Error loading drivers: ${error.message}</div>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    c.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--t2);"><h3>No drivers registered yet</h3></div>';
+    return;
+  }
+
+  c.innerHTML = `
+    <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--t2);text-transform:uppercase;">Registered Drivers (${data.length})</div>
+    <div class="preview-wrap"><table class="ptable" style="width:100%;">
+      <thead>
+        <tr style="background:#f8f9fa;">
+          <th style="padding:8px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--t3);">Name</th>
+          <th style="padding:8px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--t3);">Contact</th>
+          <th style="padding:8px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--t3);">Area</th>
+          <th style="padding:8px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--t3);">Status</th>
+          <th style="padding:8px;text-align:right;font-size:10px;text-transform:uppercase;color:var(--t3);">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.map(d => {
+          const areaName = areas.find(a => a.id === d.area_id)?.name || 'Local Area';
+          const statusBadge = d.is_approved 
+            ? '<span class="badge bg" style="background:#d1fae5;color:#065f46;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:600;">Approved</span>' 
+            : '<span class="badge by" style="background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:600;">Pending</span>';
+          
+          const approveBtn = !d.is_approved 
+            ? `<button onclick="approveDriver('${d.id}')" style="background:var(--g);color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;margin-right:6px;">Approve</button>`
+            : '';
+            
+          const deleteBtn = `<button onclick="deleteDriver('${d.id}', '${d.name}')" style="background:#ef4444;color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:10px;font-weight:600;cursor:pointer;">Delete</button>`;
+
+          return `
+            <tr style="border-bottom:1px solid var(--bd);">
+              <td style="padding:8px;font-size:12px;font-weight:600;color:var(--t);">${d.name}<div style="font-size:9px;color:var(--t3);font-weight:normal;">@${d.username}</div></td>
+              <td style="padding:8px;font-size:11px;color:var(--t2);">${d.phone}</td>
+              <td style="padding:8px;font-size:11px;color:var(--t2);">${areaName}</td>
+              <td style="padding:8px;font-size:11px;">${statusBadge}</td>
+              <td style="padding:8px;text-align:right;">${approveBtn}${deleteBtn}</td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table></div>
+  `;
+}
+
+async function approveDriver(id) {
+  if (!confirm("Approve this driver profile?")) return;
+  const { error } = await sbLeads.from('drivers').update({ is_approved: true }).eq('id', id);
+  if (error) {
+    toast("Approval failed: " + error.message);
+  } else {
+    toast("Driver approved!");
+    renderDrivers();
+  }
+}
+
+async function deleteDriver(id, name) {
+  if (!confirm(`Are you sure you want to permanently delete driver "${name}"?`)) return;
+  const { error } = await sbLeads.from('drivers').delete().eq('id', id);
+  if (error) {
+    toast("Deletion failed: " + error.message);
+  } else {
+    toast("Driver deleted!");
+    renderDrivers();
+  }
+}
+
+async function renderDeliveries() {
+  const c = document.getElementById('tc-deliveries');
+  c.innerHTML = '<div style="padding:20px;text-align:center;color:var(--t3);">Loading deliveries...</div>';
+
+  const { data, error } = await sbLeads.from('orders')
+    .select('*')
+    .eq('delivery_type', 'delivery')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    c.innerHTML = `<div style="padding:20px;color:red;">Error loading deliveries: ${error.message}</div>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    c.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--t2);"><h3>No delivery orders found</h3></div>';
+    return;
+  }
+
+  c.innerHTML = `
+    <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--t2);text-transform:uppercase;">Delivery Orders (${data.length})</div>
+    <div class="preview-wrap"><table class="ptable" style="width:100%;">
+      <thead>
+        <tr style="background:#f8f9fa;">
+          <th style="padding:8px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--t3);">Order Ref</th>
+          <th style="padding:8px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--t3);">From / To</th>
+          <th style="padding:8px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--t3);">Driver</th>
+          <th style="padding:8px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--t3);">Amount</th>
+          <th style="padding:8px;text-align:left;font-size:10px;text-transform:uppercase;color:var(--t3);">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.map(o => {
+          const ref = 'MP' + o.id.slice(0, 6).toUpperCase();
+          const dateStr = new Date(o.created_at).toLocaleDateString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+          const driverInfo = o.driver_name 
+            ? `<div style="font-weight:600;color:var(--g);">${o.driver_name}</div><div style="font-size:9.5px;color:var(--t3);">${o.driver_phone}</div>`
+            : '<span style="color:#d97706;font-weight:600;font-size:11px;">Unassigned</span>';
+          
+          let statusColor = '#475569';
+          if (o.status === 'delivered') statusColor = '#059669';
+          else if (o.status === 'dispatched') statusColor = '#2563eb';
+          else if (o.status === 'cancelled') statusColor = '#dc2626';
+          else if (o.status === 'confirmed') statusColor = '#7c3aed';
+
+          return `
+            <tr style="border-bottom:1px solid var(--bd);">
+              <td style="padding:8px;font-size:12px;font-weight:600;color:var(--t);">${ref}<div style="font-size:9px;color:var(--t3);font-weight:normal;">${dateStr}</div></td>
+              <td style="padding:8px;font-size:11.5px;color:var(--t2);">
+                <strong>From:</strong> ${o.business_name}
+                <br>
+                <strong>To:</strong> ${o.customer_name} (${o.delivery_address})
+              </td>
+              <td style="padding:8px;font-size:11px;">${driverInfo}</td>
+              <td style="padding:8px;font-size:11px;color:var(--t2);">
+                Total: <strong>₹${o.total_price}</strong>
+                <br>
+                <span style="font-size:9.5px;color:var(--t3);">Charges: ₹${o.delivery_charges || '0'}</span>
+              </td>
+              <td style="padding:8px;font-size:11px;font-weight:700;color:${statusColor};text-transform:uppercase;">${o.status}</td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table></div>
+  `;
 }
 
 // ===== INIT =====

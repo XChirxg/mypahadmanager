@@ -88,7 +88,7 @@ body::before{content:'';position:fixed;top:-50px;right:-50px;width:170px;height:
     <div class="tab" onclick="dTab('biz',this)">Businesses</div>
     <div class="tab" onclick="dTab('upload',this)">Bulk Upload</div>
     <div class="tab" onclick="dTab('ads',this)">Ads</div>
-    <div class="tab" onclick="dTab('drivers',this)">Delivery Persons</div>
+    <div class="tab" onclick="dTab('drivers',this)">Deliverers</div>
     <div class="tab" onclick="dTab('cfg',this)">Settings</div>
   </div>
 
@@ -123,7 +123,7 @@ body::before{content:'';position:fixed;top:-50px;right:-50px;width:170px;height:
     <div class="mtitle">Merge Category</div>
     <input type="hidden" id="merge-from-id"/>
     <p style="font-size:12px;color:var(--t2);margin-bottom:8px;">Moving all listings from <strong id="merge-from-name"></strong> into another category.</p>
-    <div class="warn-box" style="margin-bottom:8px;"><strong>⚠ Cannot be undone.</strong> Listings will be reassigned and the old category deleted.</div>
+    <div class="warn-box" style="margin-bottom:8px;"><strong><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px; color:#c2410c;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Cannot be undone.</strong> Listings will be reassigned and the old category deleted.</div>
     <div class="fg"><label>Merge into →</label><select id="merge-into-id"></select></div>
     <div id="merge-err" class="err"></div>
     <div class="mftr">
@@ -499,7 +499,7 @@ async function renderOv(){
     const r=document.createElement('div');
     r.className='arow';
     const areaName = Array.isArray(b.areas) ? b.areas[0]?.name : b.areas?.name;
-    r.innerHTML=`<div><div class="anm">${b.business_name} <span style="font-size:9px;color:var(--t3);">${areaName||''}</span></div></div><div style="font-size:11px;color:#e74c3c;">♥ ${b.hearts||0}</div>`;
+    r.innerHTML=`<div><div class="anm">${b.business_name} <span style="font-size:9px;color:var(--t3);">${areaName||''}</span></div></div><div style="font-size:11px;color:#e74c3c;display:flex;align-items:center;gap:3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="color:#e74c3c;"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>${b.hearts||0}</div>`;
     tb.appendChild(r);
   });
 }
@@ -548,8 +548,8 @@ async function renderBiz(st='',pg=0){
       <div class="bact">
         ${!b.is_approved?`<button class="btn-appr" onclick="apprBiz('${b.id}','${st}')">Approve</button>`:''}
         ${b.is_active?`<button class="btn-dng" onclick="disBiz('${b.id}','${st}')">Disable</button>`:`<button class="btn-ena" onclick="enBiz('${b.id}','${st}')">Enable</button>`}
-        <button class="btn-appr" style="background:#e8f5ee;color:#1a5c3a;border:1px solid #1a5c3a;" onclick="editBizCategory('${b.id}','${b.business_name.replace(/'/g,"\\'")}','${b.category_id||''}','${(b.draft_category||'').replace(/'/g,"\\'")}','biz')">✏️ Category</button>
-        <button class="btn-sm" onclick="renBiz('${b.id}','${b.business_name.replace(/'/g,"\\'")}','${st}')">✏️ Rename</button>
+        <button class="btn-appr" style="background:#e8f5ee;color:#1a5c3a;border:1px solid #1a5c3a;" onclick="editBizCategory('${b.id}','${b.business_name.replace(/'/g,"\\'")}','${b.category_id||''}','${(b.draft_category||'').replace(/'/g,"\\'")}','biz')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:2px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Category</button>
+        <button class="btn-sm" onclick="renBiz('${b.id}','${b.business_name.replace(/'/g,"\\'")}','${st}')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:2px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Rename</button>
         <button class="btn-dng" onclick="delBiz('${b.id}','${st}')">Delete</button>
       </div>`;
     list.appendChild(card);
@@ -639,7 +639,7 @@ function renderUpload(){
       <div id="preview-summary" style="margin-bottom:10px;"></div>
       <div id="preview-table"></div>
       <div style="display:flex;gap:6px;margin-top:10px;">
-        <button onclick="startUpload()" style="background:var(--g);color:#fff;border:none;padding:10px;border-radius:var(--rs);font-size:13px;font-weight:700;flex:1;">⬆ Upload All</button>
+        <button onclick="startUpload()" style="background:var(--g);color:#fff;border:none;padding:10px;border-radius:var(--rs);font-size:13px;font-weight:700;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload All</button>
         <button onclick="backToS1()" class="btn-sm" style="padding:10px 14px;">← Back</button>
       </div>
     </div>
@@ -711,7 +711,7 @@ function showPreview(data,areaId){
     totalListings+=(b.listings||[]).length;
     totalPosts+=(b.posts||[]).length;
   });
-  if(issues.length){warn.textContent='⚠ '+issues.slice(0,3).join(' · ')+(issues.length>3?` · +${issues.length-3} more`:'');warn.style.display='block';}
+  if(issues.length){warn.innerHTML=`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px; color:#7a5200;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> `+issues.slice(0,3).join(' · ')+(issues.length>3?` · +${issues.length-3} more`:'');warn.style.display='block';}
   else{warn.style.display='none';}
   document.getElementById('preview-summary').innerHTML=`
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
@@ -980,7 +980,7 @@ async function loadDrafted(){
       <div class="biz-acts">
         ${isClaimed?`<span class="badge bg">Claimed</span>`:`<span class="badge by">Unverified</span>`}
         ${b.is_approved?`<span class="badge bb">Live</span>`:`<button class="btn-appr" onclick="approveBiz('${b.id}',this)">Approve</button>`}
-        <button class="btn-appr" style="background:#e8f5ee;color:#1a5c3a;border:1px solid #1a5c3a;padding:3px 7px;font-size:11px;" onclick="editBizCategory('${b.id}','${b.business_name.replace(/'/g,"\\'")}','${b.category_id||''}','${(b.draft_category||'').replace(/'/g,"\\'")}','draft')">✏️ Category</button>
+        <button class="btn-appr" style="background:#e8f5ee;color:#1a5c3a;border:1px solid #1a5c3a;padding:3px 7px;font-size:11px;" onclick="editBizCategory('${b.id}','${b.business_name.replace(/'/g,"\\'")}','${b.category_id||''}','${(b.draft_category||'').replace(/'/g,"\\'")}','draft')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:2px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Category</button>
         <button class="btn-dng" onclick="deleteBiz('${b.id}',this)">Del</button>
       </div>`;
     list.appendChild(row);
@@ -1086,7 +1086,7 @@ async function renderAds(pg=0){
     const bizName = Array.isArray(a.businesses) ? a.businesses[0]?.business_name : a.businesses?.business_name;
     const areaName = Array.isArray(a.areas) ? a.areas[0]?.name : a.areas?.name;
     
-    card.innerHTML=`${a.image_url?`<div class="adthumb"><img src="${getOptimizedImageUrl(a.image_url,'ad')}" alt="ad"/></div>`:`<div class="adthumb"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>`}<div class="adinfo"><div class="adtype">${a.ad_type}</div><div class="adnm">${a.title||bizName||'—'}</div>${linkInfo}${slotInfo}<div class="addts">${areaName||''} · ${a.starts_at?new Date(a.starts_at).toLocaleDateString():'?'} → ${a.ends_at?new Date(a.ends_at).toLocaleDateString():'?'}</div><div style="font-size:10px;color:var(--t3);font-weight:600;margin-top:2px;">${adStats}</div><div style="margin-top:4px;display:flex;gap:4px;">${a.is_active?'<span class="badge bg">Active</span>':'<span class="badge br">Inactive</span>'}<button class="btn-edt" onclick="openAdMod('${type}','${a.id}')">✏️ Edit</button><button class="btn-dng" onclick="delAd('${a.id}')">Delete</button></div></div>`;
+    card.innerHTML=`${a.image_url?`<div class="adthumb"><img src="${getOptimizedImageUrl(a.image_url,'ad')}" alt="ad"/></div>`:`<div class="adthumb"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>`}<div class="adinfo"><div class="adtype">${a.ad_type}</div><div class="adnm">${a.title||bizName||'—'}</div>${linkInfo}${slotInfo}<div class="addts">${areaName||''} · ${a.starts_at?new Date(a.starts_at).toLocaleDateString():'?'} → ${a.ends_at?new Date(a.ends_at).toLocaleDateString():'?'}</div><div style="font-size:10px;color:var(--t3);font-weight:600;margin-top:2px;">${adStats}</div><div style="margin-top:4px;display:flex;gap:4px;">${a.is_active?'<span class="badge bg">Active</span>':'<span class="badge br">Inactive</span>'}<button class="btn-edt" onclick="openAdMod('${type}','${a.id}')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:2px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit</button><button class="btn-dng" onclick="delAd('${a.id}')">Delete</button></div></div>`;
     list.appendChild(card);
   });
   if(tp>1){const pgr=document.createElement('div');pgr.className='pgrow';pgr.innerHTML=`<button class="pgb" onclick="renderAds(${pg-1})" ${pg===0?'disabled':''}>← Prev</button><span class="pgi">${pg+1} / ${tp}</span><button class="pgb" onclick="renderAds(${pg+1})" ${pg>=tp-1?'disabled':''}>Next →</button>`;list.appendChild(pgr);}
@@ -1352,7 +1352,7 @@ async function renderCfg(aPg=0,cPg=0){
   const cl=document.getElementById('catslist');if(cl){
     cl.innerHTML='';
     if(!cats||!cats.length){cl.innerHTML='<div style="font-size:11px;color:var(--t3);padding:8px 0;">No categories yet.</div>';}
-    (cats||[]).forEach(cat=>{const count=cntMap[cat.id]||0;const r=document.createElement('div');r.className='crow';r.innerHTML=`<div class="cnm">${cat.name}</div><div class="ccnt">${count} listing${count!==1?'s':''}</div><div class="cact"><button class="btn-edt" onclick="openCatEdit('${cat.id}','${cat.name.replace(/'/g,"\\'")}',${count})">✏️ Rename</button><button class="btn-mrg" onclick="openMerge('${cat.id}','${cat.name.replace(/'/g,"\\'")}')">Merge</button>${count===0?`<button class="btn-dng" onclick="delCat('${cat.id}','${cat.name.replace(/'/g,"\\'")}')">Del</button>`:`<button class="btn-sm" disabled style="opacity:0.4;">Del</button>`}</div>`;cl.appendChild(r);});
+    (cats||[]).forEach(cat=>{const count=cntMap[cat.id]||0;const r=document.createElement('div');r.className='crow';r.innerHTML=`<div class="cnm">${cat.name}</div><div class="ccnt">${count} listing${count!==1?'s':''}</div><div class="cact"><button class="btn-edt" onclick="openCatEdit('${cat.id}','${cat.name.replace(/'/g,"\\'")}',${count})"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:2px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Rename</button><button class="btn-mrg" onclick="openMerge('${cat.id}','${cat.name.replace(/'/g,"\\'")}')">Merge</button>${count===0?`<button class="btn-dng" onclick="delCat('${cat.id}','${cat.name.replace(/'/g,"\\'")}')">Del</button>`:`<button class="btn-sm" disabled style="opacity:0.4;">Del</button>`}</div>`;cl.appendChild(r);});
     if(ctp>1){const pgr=document.createElement('div');pgr.className='pgrow';pgr.innerHTML=`<button class="pgb" onclick="renderCfg(${aPg},${cPg-1})" ${cPg===0?'disabled':''}>← Prev</button><span class="pgi">${cPg+1} / ${ctp}</span><button class="pgb" onclick="renderCfg(${aPg},${cPg+1})" ${cPg>=ctp-1?'disabled':''}>Next →</button>`;cl.appendChild(pgr);}
   }
 }
@@ -1482,21 +1482,21 @@ async function saveBizCategory() {
 // ===== DRIVERS & DELIVERIES =====
 async function renderDrivers() {
   const c = document.getElementById('tc-drivers');
-  c.innerHTML = '<div style="padding:20px;text-align:center;color:var(--t3);">Loading delivery persons...</div>';
+  c.innerHTML = '<div style="padding:20px;text-align:center;color:var(--t3);">Loading deliverers...</div>';
   
   const { data, error } = await sbLeads.from('drivers').select('*').order('created_at', { ascending: false });
   if (error) {
-    c.innerHTML = `<div style="padding:20px;color:red;">Error loading delivery persons: ${error.message}</div>`;
+    c.innerHTML = `<div style="padding:20px;color:red;">Error loading deliverers: ${error.message}</div>`;
     return;
   }
 
   if (!data || data.length === 0) {
-    c.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--t2);"><h3>No delivery persons registered yet</h3></div>';
+    c.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--t2);"><h3>No deliverers registered yet</h3></div>';
     return;
   }
 
   c.innerHTML = `
-    <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--t2);text-transform:uppercase;">Registered Delivery Persons (${data.length})</div>
+    <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--t2);text-transform:uppercase;">Registered Deliverers (${data.length})</div>
     <div class="preview-wrap"><table class="ptable" style="width:100%;">
       <thead>
         <tr style="background:#f8f9fa;">
@@ -1536,7 +1536,7 @@ async function renderDrivers() {
 }
 
 async function approveDriver(id) {
-  if (!confirm("Approve this delivery person profile?")) return;
+  if (!confirm("Approve this deliverer profile?")) return;
   const { error } = await sbLeads.from('drivers').update({ is_approved: true }).eq('id', id);
   if (error) {
     toast("Approval failed: " + error.message);
@@ -1547,7 +1547,7 @@ async function approveDriver(id) {
 }
 
 async function deleteDriver(id, name) {
-  if (!confirm(`Are you sure you want to permanently delete delivery person "${name}"?`)) return;
+  if (!confirm(`Are you sure you want to permanently delete deliverer "${name}"?`)) return;
   const { error } = await sbLeads.from('drivers').delete().eq('id', id);
   if (error) {
     toast("Deletion failed: " + error.message);

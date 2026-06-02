@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-QC4K73RYBE"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-QC4K73RYBE');
+</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Manager – MyPahad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="cloudinary-utils.js"></script>
+<link rel="stylesheet" href="mp.css"/>
+<style>
+body{padding-bottom:60px;}
+body::before{content:'';position:fixed;top:-50px;right:-50px;width:170px;height:170px;background:var(--g);border-radius:30px;opacity:0.06;z-index:0;pointer-events:none;}
+#toast{bottom:12px;}
+.dc{padding:10px;padding-bottom:68px;}
+.auth-hero{background:var(--g);padding:16px 12px 12px;text-align:center;}
+.auth-hero img{height:28px;width:auto;margin-bottom:6px;}
+.auth-hero p{color:rgba(255,255,255,0.65);font-size:10px;}
+.auth-card{background:#fff;padding:14px;max-width:360px;margin:0 auto;}
+
+/* BULK UPLOAD SPECIFIC */
+.card-title{font-size:11px;font-weight:700;color:var(--t2);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.smini{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px;}
+.biz-row{background:#fff;border:1px solid var(--bd);border-radius:var(--r);padding:8px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px;}
+.biz-dp{width:36px;height:36px;border-radius:50%;background:var(--gl);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+.biz-dp img{width:36px;height:36px;border-radius:50%;object-fit:cover;}
+.biz-info{flex:1;min-width:0;}
+.biz-nm{font-size:12px;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.biz-meta{font-size:10px;color:var(--t3);margin-top:1px;}
+.biz-acts{display:flex;gap:4px;flex-shrink:0;}
+.btn-claim{background:#fff3cd;color:#856404;border:1px solid #ffc107;padding:3px 7px;border-radius:var(--rs);font-size:11px;font-weight:600;}
+
+/* TABS */
+.tabs{display:flex;background:#fff;border-bottom:1px solid var(--bd);position:sticky;top:40px;z-index:90;overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:1;min-width:60px;text-align:center;padding:9px 4px;font-size:11px;font-weight:600;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.tab.on{color:var(--g);border-bottom-color:var(--g);}
+.page{padding:10px 12px 80px;}
+
+/* TEMPLATE MODAL */
+.tpl-ta{font-family:'Courier New',monospace;font-size:10px;min-height:220px;resize:vertical;width:100%;}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- LOGIN -->
+<div id="page-login">
+  <div class="auth-hero"><img src="logo.png" alt="MyPahad"/><p>Manager &amp; Admin Portal</p></div>
+  <div style="padding:0 12px 14px;max-width:360px;margin:0 auto;">
+    <div class="auth-card" style="border-radius:0 0 var(--r) var(--r);">
+      <div class="fg" style="margin-top:2px;"><label>Email</label><input type="email" id="me"/></div>
+      <div class="fg"><label>Password</label><input type="password" id="mp" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <div id="merr" class="err"></div>
+      <button class="btn-pri" onclick="doLogin()">Login →</button>
+    </div>
+    <div style="text-align:center;margin-top:10px;"><a href="index.html" style="font-size:11px;color:var(--t3);">← Back to MyPahad</a></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="page-dash" class="hidden">
+  <div class="nav" style="position:sticky;top:0;z-index:100;">
+    <img src="logo.png" class="nav-logo" alt="MyPahad"/>
+    <span class="nav-title" style="font-size:11px;">Manager</span>
+    <div class="nav-menu">
+      <button class="nav-dots" onclick="toggleMenu()">···</button>
+      <div class="nav-dd" id="navdd">
+        <button onclick="window.location='index.html'">View site</button>
+        <button onclick="doLogout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs" id="main-tabs">
+    <div class="tab on" onclick="dTab('ov',this)">Overview</div>
+    <div class="tab" onclick="dTab('biz',this)">Businesses</div>
+    <div class="tab" onclick="dTab('upload',this)">Bulk Upload</div>
+    <div class="tab" onclick="dTab('ads',this)">Ads</div>
+    <div class="tab" onclick="dTab('cfg',this)">Settings</div>
+  </div>
+
+  <div class="page" id="tc-ov"></div>
+  <div class="page hidden" id="tc-biz"></div>
+  <div class="page hidden" id="tc-upload"></div>
+  <div class="page hidden" id="tc-ads"></div>
+  <div class="page hidden" id="tc-cfg"></div>
+</div>
+
+<!-- CATEGORY EDIT MODAL -->
+<div id="catmod" class="mo hidden">
+  <div class="mbox">
+    <button class="mclose" onclick="closeMod('catmod')">×</button>
+    <div class="mtitle" id="catmod-title">Edit Category</div>
+    <input type="hidden" id="cat-id"/>
+    <div class="fg"><label>Category Name *</label><input type="text" id="cat-name" placeholder="e.g. Dairy Products"/></div>
+    <div id="catmod-warn" class="warn-box hidden"></div>
+    <div id="cat-err" class="err"></div>
+    <div class="mftr">
+      <button class="btn-pri" onclick="saveCatEdit()">Save</button>
+      <button class="btn-sm" onclick="closeMod('catmod')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- MERGE MODAL -->
+<div id="mergemod" class="mo hidden">
+  <div class="mbox">
+    <button class="mclose" onclick="closeMod('mergemod')">×</button>
+    <div class="mtitle">Merge Category</div>
+    <input type="hidden" id="merge-from-id"/>
+    <p style="font-size:12px;color:var(--t2);margin-bottom:8px;">Moving all listings from <strong id="merge-from-name"></strong> into another category.</p>
+    <div class="warn-box" style="margin-bottom:8px;"><strong>⚠ Cannot be undone.</strong> Listings will be reassigned and the old category deleted.</div>
+    <div class="fg"><label>Merge into →</label><select id="merge-into-id"></select></div>
+    <div id="merge-err" class="err"></div>
+    <div class="mftr">
+      <button class="btn-pri" style="background:#e05a2b;" onclick="doMerge()">Merge &amp; Delete</button>
+      <button class="btn-sm" onclick="closeMod('mergemod')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- AD MODAL -->
+<div id="admod" class="mo hidden">
+  <div class="mbox">
+    <button class="mclose" onclick="closeMod('admod')">×</button>
+    <div class="mtitle" id="admod-title">Add Ad / Sponsored Slot</div>
+    <input type="hidden" id="ad-id"/>
+    <input type="hidden" id="ad-adtype"/>
+    
+    <!-- Area Selection (required for both) -->
+    <div class="fg"><label>Area *</label><select id="aarea" onchange="loadAreaCategories(this.value)"></select></div>
+    
+    <!-- Business search (for both, but required for Sponsor) -->
+    <div class="fg">
+      <label id="lbl-biz">Business</label>
+      <input type="text" id="absrch" placeholder="Search business..." oninput="srchBiz(this.value)"/>
+      <div id="abres" class="bs-res"></div>
+      <input type="hidden" id="abid"/>
+      <small id="absel" style="font-size:10px;color:var(--g);"></small>
+    </div>
+    
+    <!-- Title (for both, e.g. "Summer Special" or business name) -->
+    <div class="fg"><label>Title / Headline</label><input type="text" id="atitle" placeholder="Summer Sale!"/></div>
+    
+    <!-- Category dropdown (only for Sponsor) -->
+    <div class="fg" id="fg-acat">
+      <label>Category *</label>
+      <select id="acat-select">
+        <option value="">— Select Category —</option>
+      </select>
+    </div>
+    
+    <!-- Listing dropdown (only for Sponsor) -->
+    <div class="fg" id="fg-alst">
+      <label>Listing Item (Product/Service)</label>
+      <select id="alst-select">
+        <option value="">— Select Listing —</option>
+      </select>
+    </div>
+    
+    <!-- Image URL (only for Banner) -->
+    <div class="fg" id="fg-aimg"><label>Image URL *</label><input type="url" id="aimg" placeholder="https://..."/></div>
+    
+    <!-- Link URL (only for Banner, optional) -->
+    <div class="fg" id="fg-alink"><label>Link URL (Optional external redirect)</label><input type="url" id="alink" placeholder="https://..."/></div>
+    
+    <!-- Listing ID (only for Banner, optional redirect) -->
+    <div class="fg" id="fg-alstid"><label>Listing Redirect ID (Optional local product UUID)</label><input type="text" id="alstid" placeholder="UUID..."/></div>
+    
+    <!-- Slot Number (only for Banner) -->
+    <div class="fg" id="fg-aslot">
+      <label>Slot / Label Position *</label>
+      <select id="aslot-select">
+        <option value="banner_top">Home Page Top Banner (Top slot)</option>
+        <option value="banner1">Banner 1 (After Category 1)</option>
+        <option value="banner2">Banner 2 (After Category 2)</option>
+        <option value="banner3">Banner 3 (After Category 3)</option>
+        <option value="banner4">Banner 4 (After Category 4)</option>
+        <option value="banner5">Banner 5 (After Category 5)</option>
+        <option value="banner6">Banner 6 (After Category 6)</option>
+        <option value="banner7">Banner 7 (After Category 7)</option>
+        <option value="banner8">Banner 8 (After Category 8)</option>
+      </select>
+    </div>
+    
+    <!-- Dates (both) -->
+    <div class="fg"><label>Starts At *</label><input type="datetime-local" id="astart"/></div>
+    <div class="fg"><label>Ends At *</label><input type="datetime-local" id="aend"/></div>
+    
+    <div id="aerr" class="err"></div>
+    <div class="mftr"><button class="btn-pri" onclick="saveAd()">Save</button><button class="btn-sm" onclick="closeMod('admod')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- BUSINESS CATEGORY EDIT MODAL -->
+<div id="bizcatmod" class="mo hidden">
+  <div class="mbox">
+    <button class="mclose" onclick="closeMod('bizcatmod')">×</button>
+    <div class="mtitle">Assign Business Category</div>
+    <p style="font-size:11px;color:var(--t2);margin-bottom:8px;font-weight:600;" id="bizcatmod-biznm"></p>
+    <input type="hidden" id="bizcat-bizid"/>
+    
+    <div class="fg">
+      <label>Choose Existing Category</label>
+      <select id="bizcat-select">
+        <option value="">— Select Category —</option>
+      </select>
+    </div>
+    
+    <div style="text-align:center;font-size:10px;color:var(--t3);margin:5px 0;">- OR CREATE NEW -</div>
+    
+    <div class="fg">
+      <label>Create &amp; Assign New Category</label>
+      <input type="text" id="bizcat-newname" placeholder="e.g. Handmade Shawls"/>
+    </div>
+    
+    <div id="bizcat-err" class="err"></div>
+    
+    <div class="mftr">
+      <button class="btn-pri" onclick="saveBizCategory()">Assign Category</button>
+      <button class="btn-sm" onclick="closeMod('bizcatmod')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEMPLATE MODAL -->
+<div id="tpl-modal" class="mo hidden">
+  <div class="mbox" style="max-width:550px;">
+    <button class="mclose" onclick="closeMod('tpl-modal')">×</button>
+    <div class="mtitle">AI Bulk Upload Help</div>
+    <div class="tabs" style="margin-bottom:10px;position:static;box-shadow:none;border-bottom:1px solid var(--bd);">
+      <div class="tab on" id="tab-tpl-json" onclick="setTplTab('json')">JSON Template</div>
+      <div class="tab" id="tab-tpl-prompt" onclick="setTplTab('prompt')">AI Prompt</div>
+    </div>
+    
+    <div id="tpl-json-sec">
+      <textarea class="tpl-ta" id="tpl-text" readonly style="min-height:280px;">[
+  {
+    "business_name": "Sharma General Store",
+    "category": "Grocery",
+    "whatsapp": "9876543210",
+    "phone": "9876543210",
+    "description": "Daily groceries, spices and dry fruits",
+    "address": "Main Bazar, near Bus Stand",
+    "dp_url": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&auto=format&fit=crop",
+    "instagram": "",
+    "facebook": "",
+    "website": "",
+    "listings": [
+      {
+        "name": "Basmati Rice 5kg",
+        "price": "₹320",
+        "discount_price": "₹290",
+        "has_delivery": true,
+        "qty_label": "Quantity",
+        "booking_required": false,
+        "listing_type": "product",
+        "description": "Premium quality Dehraduni basmati",
+        "image_url": "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&auto=format&fit=crop",
+        "variants": [
+          "500g – ₹45", 
+          "1kg – ₹85", 
+          "5kg – ₹320"
+        ],
+        "tags": "rice, basmati, grocery, food"
+      }
+    ],
+    "posts": [
+      {
+        "title": "Fresh Organic Rice Arrival",
+        "content": "Just arrived: Premium quality fresh basmati rice from the foothills of Himalayas. Visit us or order via WhatsApp!",
+        "media_url": "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop",
+        "media_type": "image",
+        "tags": "fresh, organic, arrival"
+      }
+    ]
+  }
+]</textarea>
+      <button onclick="copyTpl()" style="margin-top:8px;background:var(--g);color:#fff;border:none;padding:8px;border-radius:var(--rs);font-size:12px;font-weight:600;width:100%;">Copy JSON Template</button>
+    </div>
+    
+    <div id="tpl-prompt-sec" class="hidden">
+      <textarea class="tpl-ta" id="tpl-prompt-text" readonly style="min-height:280px;">Please structure the local business directory data into the following JSON format. Make sure to find and use real, high-quality, hotlinked image URLs from the internet (e.g. from Unsplash using keywords like https://images.unsplash.com/photo-... or other public domain image sites) to populate the "dp_url" for the business logo/dp, "image_url" for each listing item, and "media_url" for each post, according to what product, service or post content it is. Do not use empty or generic placeholders.
+
+Field Constraints & Options:
+1. "listings" -> "listing_type": Must be either "product" or "service".
+2. "listings" -> "variants": An array of size/option strings. Format can be:
+   - "Option Name – Original Price" (e.g. "500g – ₹45")
+   - "Option Name – Original Price – Discount Price" (e.g. "1kg – ₹85 – ₹75")
+   - Alternatively, can be structured objects: {"name": "Option Name", "price": "45", "discount_price": "35"}
+3. "listings" -> "tags": A string of comma-separated search tags (e.g. "rice, grocery, food").
+4. "posts" -> "media_type": Must be either "image" (default) or "youtube" (for YouTube videos).
+5. "posts" -> "media_url": Must be an image URL if media_type is "image", or a YouTube URL if media_type is "youtube".
+6. "posts" -> "tags": A string of comma-separated tags (e.g. "fresh, organic, arrival").
+
+JSON Format:
+[
+  {
+    "business_name": "Sharma General Store",
+    "category": "Grocery",
+    "whatsapp": "9876543210",
+    "phone": "9876543210",
+    "description": "Daily groceries, spices and dry fruits",
+    "address": "Main Bazar, near Bus Stand",
+    "dp_url": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&auto=format&fit=crop",
+    "instagram": "",
+    "facebook": "",
+    "website": "",
+    "listings": [
+      {
+        "name": "Basmati Rice 5kg",
+        "price": "₹320",
+        "discount_price": "₹290",
+        "has_delivery": true,
+        "qty_label": "Quantity",
+        "booking_required": false,
+        "listing_type": "product",
+        "description": "Premium quality Dehraduni basmati",
+        "image_url": "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&auto=format&fit=crop",
+        "variants": ["500g – ₹45", "1kg – ₹85", "5kg – ₹320"],
+        "tags": "rice, basmati, grocery, food"
+      }
+    ],
+    "posts": [
+      {
+        "title": "Fresh Organic Rice Arrival",
+        "content": "Just arrived: Premium quality fresh basmati rice from the foothills of Himalayas. Visit us or order via WhatsApp!",
+        "media_url": "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop",
+        "media_type": "image",
+        "tags": "fresh, organic, arrival"
+      }
+    ]
+  }
+]</textarea>
+      <button onclick="copyPrompt()" style="margin-top:8px;background:var(--g);color:#fff;border:none;padding:8px;border-radius:var(--rs);font-size:12px;font-weight:600;width:100%;">Copy AI Prompt</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SU='https://khbotkadtbkwqxjxlyhm.supabase.co';
+const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoYm90a2FkdGJrd3F4anhseWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5NTU4OTAsImV4cCI6MjA4ODUzMTg5MH0.MnNTuoONyBTGZeO1qYyRUTtkRdFreK0OrOcYk66pWxs';
+const MGRS=['admin@mypahad.in','manager@mypahad.in','rahuljoshi@mypahad.in'];
+const {createClient}=supabase;const sb=createClient(SU,SK);
+const LEADS_SU = 'https://rcyvtdmvimqvsrglrnwv.supabase.co';
+const LEADS_SK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjeXZ0ZG12aW1xdnNyZ2xybnd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzOTQ1NTAsImV4cCI6MjA5NTk3MDU1MH0.kRvgihk-ZIT82L8W3vR9T0QASoCDeEsNwVsh7851KRk';
+const sbLeads = createClient(LEADS_SU, LEADS_SK);
+let cu=null,areas=[],charts={};
+let bizPg=0,adPg=0,areaPg=0,catPg=0,draftPage=0;
+let parsedData=[];
+const PS=10;
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2200);}
+function openMod(id){document.getElementById(id).classList.remove('hidden');}
+function closeMod(id){document.getElementById(id).classList.add('hidden');}
+function toggleMenu(){document.getElementById('navdd').classList.toggle('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('.nav-menu'))document.getElementById('navdd')?.classList.remove('open');});
+
+async function doLogin(){
+  const e=document.getElementById('me').value.trim(),p=document.getElementById('mp').value;
+  const err=document.getElementById('merr');err.textContent='';
+  if(!MGRS.includes(e)){err.textContent='Not authorized.';return;}
+  const {data,error}=await sb.auth.signInWithPassword({email:e,password:p});
+  if(error){err.textContent=error.message;return;}
+  cu=data.user;sessionStorage.setItem('mp_mgr','1');
+  document.getElementById('page-login').classList.add('hidden');
+  document.getElementById('page-dash').classList.remove('hidden');
+  await loadAreas();dTab('ov',document.querySelector('.tab'));
+}
+
+async function doLogout(){await sb.auth.signOut();sessionStorage.removeItem('mp_mgr');cu=null;location.reload();}
+
+async function loadAreas(){
+  const {data}=await sb.from('areas').select('*').order('name');areas=data||[];
+  const as=document.getElementById('aarea');if(as){as.innerHTML='';areas.forEach(a=>as.appendChild(new Option(a.name,a.id)));}
+}
+
+function dTab(t,btn){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  ['ov','biz','upload','ads','cfg'].forEach(x=>{document.getElementById('tc-'+x).classList.toggle('hidden',x!==t);});
+  if(t==='ov')renderOv();
+  else if(t==='biz')renderBiz();
+  else if(t==='upload')renderUpload();
+  else if(t==='ads')renderAds();
+  else if(t==='cfg')renderCfg();
+}
+
+// ===== OVERVIEW =====
+async function renderOv(){
+  // Read value of selected area before overwriting innerHTML
+  const aid=document.getElementById('afilter')?.value||'';
+
+  // Destroy charts before overwriting canvas elements to prevent Chart.js errors
+  if(charts.v){charts.v.destroy();charts.v=null;}
+  if(charts.w){charts.w.destroy();charts.w=null;}
+
+  const c=document.getElementById('tc-ov');
+  c.innerHTML=`
+    <div class="fbar" style="margin-bottom:8px;">
+      <select id="afilter" onchange="renderOv()" style="font-size:11px;padding:5px 7px;">
+        <option value="">All Areas</option>
+        ${areas.map(a=>`<option value="${a.id}" ${a.id===aid?'selected':''}>${a.name}</option>`).join('')}
+      </select>
+    </div>
+    <div class="sgrid sgrid4" id="sgrid">
+      ${[...Array(4)].map(()=>`<div class="sbox"><div class="shim" style="height:16px;border-radius:2px;margin-bottom:3px;"></div><div class="shim" style="height:8px;width:60%;margin:0 auto;border-radius:2px;"></div></div>`).join('')}
+    </div>
+    <div class="chart-wrap"><div class="chart-title">Visits – last 30 days</div><canvas id="vchart" class="chart-canvas"></canvas></div>
+    <div class="chart-wrap"><div class="chart-title">WhatsApp contacts – last 30 days</div><canvas id="wchart" class="chart-canvas"></canvas></div>
+    <div class="slbl2" style="margin-top:4px;">Top Businesses (by hearts)</div>
+    <div id="topbiz"></div>`;
+
+  const since=new Date(Date.now()-30*864e5).toISOString();
+
+  // Stats: businesses
+  let bq=sb.from('businesses').select('id,is_approved,is_active');
+  if(aid)bq=bq.eq('area_id',aid);
+  const {data:bd}=await bq;
+  const total=bd?.length||0;
+  const appr=(bd||[]).filter(b=>b.is_approved).length;
+  const pend=(bd||[]).filter(b=>!b.is_approved&&b.is_active).length;
+
+  // Stats: listings (Join query)
+  let lq;
+  if(aid){
+    lq=sb.from('listings').select('id, businesses!inner(area_id)',{count:'exact',head:true}).eq('businesses.area_id',aid);
+  } else {
+    lq=sb.from('listings').select('id',{count:'exact',head:true});
+  }
+  const {count:lstCount}=await lq;
+
+  // Analytics
+  let eq=sb.from('analytics').select('event_type,created_at').gte('created_at',since);
+  if(aid)eq=eq.eq('area_id',aid);
+  const {data:ev,error:evErr}=await eq;
+  if(evErr){console.error('Analytics error:',evErr.message);}
+  const visits=(ev||[]).filter(e=>e.event_type==='area_visit').length;
+  const wac=(ev||[]).filter(e=>e.event_type==='whatsapp_click').length;
+
+  document.getElementById('sgrid').innerHTML=`
+    <div class="sbox"><div class="snum">${visits}</div><div class="slbl">Visits (30d)</div></div>
+    <div class="sbox"><div class="snum">${wac}</div><div class="slbl">WA Clicks</div></div>
+    <div class="sbox"><div class="snum">${total}</div><div class="slbl">Businesses</div></div>
+    <div class="sbox"><div class="snum">${lstCount||0}</div><div class="slbl">Listings</div></div>`;
+
+  // Charts — 30 day series
+  const days={};for(let i=29;i>=0;i--){const d=new Date(Date.now()-i*864e5);days[d.toISOString().slice(0,10)]=0;}
+  const wdays={...days};
+  (ev||[]).forEach(e=>{
+    const d=e.created_at ? e.created_at.slice(0,10) : '';
+    if(d && e.event_type==='area_visit'&&days[d]!==undefined)days[d]++;
+    if(d && e.event_type==='whatsapp_click'&&wdays[d]!==undefined)wdays[d]++;
+  });
+  const labels=Object.keys(days).map(d=>d.slice(5));
+  const mk=(id,vals,color)=>{
+    const ctx=document.getElementById(id);if(!ctx)return null;
+    return new Chart(ctx.getContext('2d'),{type:'bar',data:{labels,datasets:[{data:vals,backgroundColor:color,borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:7},maxTicksLimit:10},grid:{display:false}},y:{ticks:{font:{size:8},stepSize:1},grid:{color:'#f0f0f0'}}}}});
+  };
+  charts.v=mk('vchart',Object.values(days),'#1a5c3a');
+  charts.w=mk('wchart',Object.values(wdays),'#e05a2b');
+
+  // Top businesses
+  let tq=sb.from('businesses').select('id,business_name,hearts,areas(name)').eq('is_approved',true).order('hearts',{ascending:false}).limit(10);
+  if(aid)tq=tq.eq('area_id',aid);
+  const {data:top}=await tq;
+  const tb=document.getElementById('topbiz');if(!tb)return;tb.innerHTML='';
+  if(!top||!top.length){tb.innerHTML='<div class="empty">No approved businesses yet.</div>';return;}
+  top.forEach((b,i)=>{
+    const r=document.createElement('div');
+    r.className='arow';
+    const areaName = Array.isArray(b.areas) ? b.areas[0]?.name : b.areas?.name;
+    r.innerHTML=`<div><div class="anm">${b.business_name} <span style="font-size:9px;color:var(--t3);">${areaName||''}</span></div></div><div style="font-size:11px;color:#e74c3c;">♥ ${b.hearts||0}</div>`;
+    tb.appendChild(r);
+  });
+}
+
+// ===== BUSINESSES =====
+async function renderBiz(st='',pg=0){
+  bizPg=pg;const c=document.getElementById('tc-biz');
+  c.innerHTML=`
+    <div class="fbar">
+      <select id="stfilt" onchange="renderBiz(this.value,0)" style="font-size:11px;padding:5px 7px;">
+        <option value="" ${st===''?'selected':''}>All</option>
+        <option value="pending" ${st==='pending'?'selected':''}>Pending</option>
+        <option value="approved" ${st==='approved'?'selected':''}>Approved</option>
+        <option value="disabled" ${st==='disabled'?'selected':''}>Disabled</option>
+      </select>
+    </div>
+    <div id="bizlist">
+      ${[...Array(3)].map(()=>`<div class="bcard"><div class="bct"><div class="bdp shim"></div><div style="flex:1;"><div class="shim" style="height:12px;border-radius:2px;margin-bottom:4px;"></div><div class="shim" style="height:10px;width:60%;border-radius:2px;"></div></div></div></div>`).join('')}
+    </div>`;
+  let q=sb.from('businesses').select('*,areas(name),categories(name)',{count:'exact'}).order('created_at',{ascending:false}).range(pg*PS,(pg+1)*PS-1);
+  if(st==='pending')q=q.eq('is_approved',false).eq('is_active',true);
+  else if(st==='approved')q=q.eq('is_approved',true).eq('is_active',true);
+  else if(st==='disabled')q=q.eq('is_active',false);
+  const {data,count}=await q;const tp=Math.ceil((count||0)/PS);
+  const list=document.getElementById('bizlist');if(!list)return;list.innerHTML='';
+  if(!data||!data.length){list.innerHTML='<div class="empty">No businesses found.</div>';return;}
+  data.forEach(b=>{
+    const card=document.createElement('div');card.className='bcard';
+    const areaName = Array.isArray(b.areas) ? b.areas[0]?.name : b.areas?.name;
+    const catName = Array.isArray(b.categories) ? b.categories[0]?.name : b.categories?.name;
+    
+    card.innerHTML=`
+      <div class="bct">
+        <div class="bdp">${b.dp_url?`<img src="${getOptimizedImageUrl(b.dp_url,'dp')}" alt=""/>`:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c3a" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>`}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="bnm">${b.business_name}${b.username?` <span style="font-size:9px;color:var(--t3);">@${b.username}</span>`:''}</div>
+          <div class="bmeta">${catName||'No Category'} · ${areaName||''} · WA: ${b.whatsapp}</div>
+          ${b.draft_category?`<div style="font-size:10px;color:#e05a2b;font-weight:bold;margin-top:2px;">Requested Category: ${b.draft_category}</div>`:''}
+          <div class="bbadges">
+            ${b.is_approved?'<span class="badge bg">Approved</span>':'<span class="badge by">Pending</span>'}
+            ${!b.is_active?'<span class="badge br">Disabled</span>':''}
+            ${b.user_id?'<span class="badge bb">Claimed</span>':''}
+          </div>
+        </div>
+      </div>
+      <div class="bact">
+        ${!b.is_approved?`<button class="btn-appr" onclick="apprBiz('${b.id}','${st}')">Approve</button>`:''}
+        ${b.is_active?`<button class="btn-dng" onclick="disBiz('${b.id}','${st}')">Disable</button>`:`<button class="btn-ena" onclick="enBiz('${b.id}','${st}')">Enable</button>`}
+        <button class="btn-appr" style="background:#e8f5ee;color:#1a5c3a;border:1px solid #1a5c3a;" onclick="editBizCategory('${b.id}','${b.business_name.replace(/'/g,"\\'")}','${b.category_id||''}','${(b.draft_category||'').replace(/'/g,"\\'")}','biz')">✏️ Category</button>
+        <button class="btn-sm" onclick="renBiz('${b.id}','${b.business_name.replace(/'/g,"\\'")}','${st}')">✏️ Rename</button>
+        <button class="btn-dng" onclick="delBiz('${b.id}','${st}')">Delete</button>
+      </div>`;
+    list.appendChild(card);
+  });
+  if(tp>1){const pgr=document.createElement('div');pgr.className='pgrow';pgr.innerHTML=`<button class="pgb" onclick="renderBiz('${st}',${pg-1})" ${pg===0?'disabled':''}>← Prev</button><span class="pgi">${pg+1} / ${tp}</span><button class="pgb" onclick="renderBiz('${st}',${pg+1})" ${pg>=tp-1?'disabled':''}>Next →</button>`;list.appendChild(pgr);}
+}
+
+async function apprBiz(id,st){
+  const {data:b}=await sb.from('businesses').select('business_name,category_id,draft_category,user_id,categories(slug)').eq('id',id).single();
+  if(b && (b.draft_category || !b.category_id)){
+    editBizCategory(id, b.business_name, b.category_id, b.draft_category, 'biz', true);
+  } else {
+    const {error}=await sb.from('businesses').update({is_approved:true}).eq('id',id);
+    if(error){toast('Error: '+error.message);return;}
+
+    // Sync driver approval to Leads DB
+    const isDriver = b && b.categories && (b.categories.slug === 'delivery' || (Array.isArray(b.categories) && b.categories[0]?.slug === 'delivery'));
+    if (isDriver && b.user_id) {
+      try {
+        await sbLeads.from('drivers').update({ is_approved: true }).eq('id', b.user_id);
+      } catch(e) { console.error("Sync error:", e); }
+    }
+
+    toast('Approved!');
+    renderBiz(st,bizPg);
+  }
+}
+
+async function disBiz(id,st){if(!confirm('Disable?'))return;const {error}=await sb.from('businesses').update({is_active:false}).eq('id',id);if(error){toast('Error');return;}toast('Disabled');renderBiz(st,bizPg);}
+async function enBiz(id,st){const {error}=await sb.from('businesses').update({is_active:true}).eq('id',id);if(error){toast('Error');return;}toast('Enabled');renderBiz(st,bizPg);}
+async function delBiz(id,st){
+  if(!confirm('Delete this business and all its listings?'))return;
+
+  // Sync driver deletion to Leads DB if it's a driver
+  try {
+    const { data: b } = await sb.from('businesses').select('user_id, categories(slug)').eq('id', id).maybeSingle();
+    const isDriver = b && b.categories && (b.categories.slug === 'delivery' || (Array.isArray(b.categories) && b.categories[0]?.slug === 'delivery'));
+    if (isDriver && b.user_id) {
+      await sbLeads.from('drivers').delete().eq('id', b.user_id);
+    }
+  } catch(e) { console.error("Sync error:", e); }
+
+  await sb.from('analytics').delete().eq('business_id',id);
+  await sb.from('hearts').delete().eq('business_id',id);
+  await sb.from('ads').delete().eq('business_id',id);
+  await sb.from('business_photos').delete().eq('business_id',id);
+  await sb.from('listings').delete().eq('business_id',id);
+  await sb.from('posts').delete().eq('business_id',id);
+  const {error}=await sb.from('businesses').delete().eq('id',id);
+  if(error){toast('Error: '+error.message);return;}
+  toast('Deleted');renderBiz(st,bizPg);
+}
+async function renBiz(id,cur,st){const n=prompt('Business Name:',cur);if(!n||n===cur)return;const {error}=await sb.from('businesses').update({business_name:n}).eq('id',id);if(error){toast('Error');return;}toast('Updated');renderBiz(st,bizPg);}
+
+// ===== BULK UPLOAD =====
+function renderUpload(){
+  const c=document.getElementById('tc-upload');
+  c.innerHTML=`
+    <div class="steps" id="steps">
+      <div class="step active" id="step1"><span class="step-num">1</span>Paste JSON</div>
+      <div class="step" id="step2"><span class="step-num">2</span>Preview</div>
+      <div class="step" id="step3"><span class="step-num">3</span>Upload</div>
+    </div>
+
+    <div id="s1">
+      <div class="alert alert-info">
+        Paste JSON from AI. Format: array of businesses, each with optional <code>listings</code>, <code>posts</code> and <code>variants</code> arrays.
+        <button onclick="openMod('tpl-modal')" style="background:none;border:none;color:var(--g);font-size:11px;font-weight:600;cursor:pointer;padding:0 4px;text-decoration:underline;">See template →</button>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          JSON Data
+        </div>
+        <div class="fg"><label>Select Area *</label><select id="area-sel"><option value="">— Select Area —</option>${areas.map(a=>`<option value="${a.id}">${a.name}</option>`).join('')}</select></div>
+        <textarea id="json-in" class="json-area" placeholder='[ { "business_name": "...", "whatsapp": "9876543210", ... } ]'></textarea>
+        <div id="json-err" class="err" style="margin-top:4px;"></div>
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <button onclick="parseJSON()" style="background:var(--g);color:#fff;border:none;padding:9px;border-radius:var(--rs);font-size:12px;font-weight:600;flex:1;">Preview →</button>
+          <button onclick="document.getElementById('json-in').value='';document.getElementById('json-err').textContent='';" class="btn-sm">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="s2" class="hidden">
+      <div id="preview-warn" style="display:none;padding:7px 10px;background:#fff3cd;color:#7a5200;border-radius:var(--rs);font-size:11px;margin-bottom:8px;"></div>
+      <div id="preview-summary" style="margin-bottom:10px;"></div>
+      <div id="preview-table"></div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <button onclick="startUpload()" style="background:var(--g);color:#fff;border:none;padding:10px;border-radius:var(--rs);font-size:13px;font-weight:700;flex:1;">⬆ Upload All</button>
+        <button onclick="backToS1()" class="btn-sm" style="padding:10px 14px;">← Back</button>
+      </div>
+    </div>
+
+    <div id="s3" class="hidden">
+      <div class="card">
+        <div class="card-title">Uploading…</div>
+        <div id="prog-status" style="font-size:11px;color:var(--t3);margin-bottom:4px;">Starting…</div>
+        <div class="prog-wrap"><div class="prog-bar" id="prog-bar" style="width:0%"></div></div>
+        <div class="prog-log" id="prog-log"></div>
+      </div>
+      <div id="s3-done" class="hidden">
+        <div class="alert alert-suc" id="s3-msg"></div>
+        <button onclick="resetUpload()" style="background:var(--g);color:#fff;border:none;padding:9px;border-radius:var(--rs);font-size:12px;font-weight:600;width:100%;margin-top:8px;">Upload More</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <div class="slbl2">All Businesses (uploaded &amp; registered)</div>
+      <div class="smini" id="ds-mini">
+        <div class="sbox"><div class="snum" id="ds-total">—</div><div class="slbl">Total</div></div>
+        <div class="sbox"><div class="snum" id="ds-appr">—</div><div class="slbl">Live</div></div>
+        <div class="sbox"><div class="snum" id="ds-claimed">—</div><div class="slbl">Claimed</div></div>
+        <div class="sbox"><div class="snum" id="ds-lst">—</div><div class="slbl">Listings</div></div>
+      </div>
+      <div class="fbar">
+        <select id="f-area" onchange="loadDrafted()"><option value="">All Areas</option>${areas.map(a=>`<option value="${a.id}">${a.name}</option>`).join('')}</select>
+        <select id="f-status" onchange="loadDrafted()"><option value="">All</option><option value="pending">Pending</option><option value="approved">Approved</option></select>
+      </div>
+      <div id="draft-list"></div>
+      <div class="pgrow hidden" id="draft-pg">
+        <button class="pgb" id="dprev" onclick="draftPg(-1)">← Prev</button>
+        <span class="pgi" id="dpgi"></span>
+        <button class="pgb" id="dnext" onclick="draftPg(1)">Next →</button>
+      </div>
+    </div>`;
+  loadDrafted();
+}
+
+function setStep(n){[1,2,3].forEach(i=>{const el=document.getElementById('step'+i);el.className='step'+(i<n?' done':i===n?' active':'');});}
+
+function parseJSON(){
+  const raw=document.getElementById('json-in').value.trim();
+  const errEl=document.getElementById('json-err');
+  const ta=document.getElementById('json-in');
+  const areaId=document.getElementById('area-sel').value;
+  errEl.textContent='';
+  if(!areaId){toast('Please select an area first.');return;}
+  if(!raw){errEl.textContent='Paste JSON first.';return;}
+  let cleaned=raw.replace(/^```json\s*/,'').replace(/^```\s*/,'').replace(/\s*```$/,'');
+  let data;
+  try{data=JSON.parse(cleaned);}
+  catch(e){ta.className='json-area err';errEl.textContent='Invalid JSON: '+e.message;return;}
+  if(!Array.isArray(data)){ta.className='json-area err';errEl.textContent='JSON must be an array [ ... ]';return;}
+  if(!data.length){errEl.textContent='Array is empty.';return;}
+  ta.className='json-area ok';
+  parsedData=data;
+  showPreview(data,areaId);
+}
+
+function showPreview(data,areaId){
+  const area=areas.find(a=>a.id===areaId);
+  const warn=document.getElementById('preview-warn');
+  const issues=[];let totalListings=0,totalPosts=0,badWa=0;
+  data.forEach((b,i)=>{
+    const wa=String(b.whatsapp||'').replace(/\D/g,'');
+    if(!b.business_name)issues.push(`Row ${i+1}: missing business_name`);
+    if(wa.length!==10){issues.push(`Row ${i+1} (${b.business_name||'?'}): whatsapp should be 10 digits`);badWa++;}
+    totalListings+=(b.listings||[]).length;
+    totalPosts+=(b.posts||[]).length;
+  });
+  if(issues.length){warn.textContent='⚠ '+issues.slice(0,3).join(' · ')+(issues.length>3?` · +${issues.length-3} more`:'');warn.style.display='block';}
+  else{warn.style.display='none';}
+  document.getElementById('preview-summary').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+      <div class="sbox"><div class="snum" style="font-size:20px;">${data.length}</div><div class="slbl">Businesses</div></div>
+      <div class="sbox"><div class="snum" style="font-size:20px;">${totalListings}</div><div class="slbl">Listings</div></div>
+      <div class="sbox"><div class="snum" style="font-size:20px;">${totalPosts}</div><div class="slbl">Posts</div></div>
+      <div class="sbox"><div class="snum" style="font-size:20px;${badWa>0?'color:#c00':''}">${badWa}</div><div class="slbl">WA Issues</div></div>
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--t3);">Area: <strong style="color:var(--g);">${area?.name||'?'}</strong> · All will be <span class="badge by">Pending Approval</span> · Owners can claim later</div>`;
+  const wrap=document.getElementById('preview-table');
+  wrap.innerHTML=`<div class="preview-wrap"><table class="ptable">
+    <thead><tr><th>#</th><th>Business</th><th>Category</th><th>WhatsApp</th><th>Listings</th><th>Posts</th><th>Description</th></tr></thead>
+    <tbody>${data.map((b,i)=>{const wa=String(b.whatsapp||'').replace(/\D/g,'');const hasIssue=!b.business_name||wa.length!==10;return `<tr class="${hasIssue?'err-row':''}"><td>${i+1}</td><td title="${b.business_name||''}">${b.business_name||'<span style="color:#c00">Missing</span>'}</td><td>${b.category||'—'}</td><td style="${wa.length!==10?'color:#c00;font-weight:600':''}">${b.whatsapp||'—'}</td><td>${(b.listings||[]).length}</td><td>${(b.posts||[]).length}</td><td style="color:var(--t3);">${(b.description||'').slice(0,40)}</td></tr>`;}).join('')}</tbody>
+  </table></div>`;
+  setStep(2);
+  document.getElementById('s1').classList.add('hidden');
+  document.getElementById('s2').classList.remove('hidden');
+}
+
+function backToS1(){document.getElementById('s2').classList.add('hidden');document.getElementById('s1').classList.remove('hidden');setStep(1);}
+
+async function startUpload(){
+  const areaId=document.getElementById('area-sel').value;
+  if(!areaId){toast('No area selected');return;}
+  document.getElementById('s2').classList.add('hidden');
+  document.getElementById('s3').classList.remove('hidden');
+  setStep(3);
+  const log=document.getElementById('prog-log');
+  const bar=document.getElementById('prog-bar');
+  const status=document.getElementById('prog-status');
+  log.innerHTML='';
+  let ok=0,skipped=0,errors=0;
+  const total=parsedData.length;
+
+  function logLine(msg,type=''){const d=document.createElement('div');d.className=type;d.textContent=msg;log.appendChild(d);log.scrollTop=log.scrollHeight;}
+
+  // Pre-fetch categories
+  const {data:cats}=await sb.from('categories').select('id,name');
+  const catMap={};(cats||[]).forEach(c=>catMap[c.name.toLowerCase()]=c.id);
+
+  const resolveCategory = async (cName) => {
+    if (!cName) return null;
+    const trimName = cName.trim();
+    if (!trimName) return null;
+    const ckey = trimName.toLowerCase();
+    if (catMap[ckey]) return catMap[ckey];
+    
+    const slug = ckey.replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+    const generatedCatId = self.crypto.randomUUID();
+    const {error:cErr} = await sb.from('categories').insert({id:generatedCatId, name:trimName, slug});
+    if (!cErr) {
+      catMap[ckey] = generatedCatId;
+      logLine(`  → Created category: ${trimName}`, 'ok');
+      return generatedCatId;
+    } else {
+      const {data:exCat} = await sb.from('categories').select('id').ilike('name', trimName).limit(1);
+      if (exCat && exCat.length) {
+        catMap[ckey] = exCat[0].id;
+        return exCat[0].id;
+      } else {
+        logLine(`  → Category create failed: ${cErr.message}`, 'er');
+        return null;
+      }
+    }
+  };
+
+  for(let i=0;i<parsedData.length;i++){
+    const b=parsedData[i];
+    bar.style.width=Math.round(((i+1)/total)*100)+'%';
+    status.textContent=`(${i+1}/${total}) ${b.business_name||'Unknown'}`;
+
+    const wa=String(b.whatsapp||'').replace(/\D/g,'');
+    if(!b.business_name){logLine(`[${i+1}] SKIP: missing business_name`,'sk');skipped++;continue;}
+
+    try{
+      // Resolve/create category
+      const catId = await resolveCategory(b.category);
+
+      // Check if business already exists by WhatsApp in this area
+      let bizId=null;
+      let bizExists=false;
+      if(wa.length===10){
+        const {data:existing}=await sb.from('businesses').select('id').eq('whatsapp',wa).eq('area_id',areaId);
+        if(existing&&existing.length){
+          bizId=existing[0].id;
+          bizExists=true;
+        }
+      }
+
+      const bizPayload={
+        area_id:areaId,
+        business_name:b.business_name.trim(),
+        description:b.description||null,
+        category_id:catId||null,
+        whatsapp:wa||'0000000000',
+        phone:b.phone||null,
+        address:b.address||null,
+        instagram:b.instagram||null,
+        facebook:b.facebook||null,
+        website:b.website||null,
+        is_approved:false,
+        is_active:true,
+        type:'both',
+        meta_description:b.description||null,
+        dp_url:b.dp_url||null
+      };
+
+      if(bizExists){
+        const {error:bizErr}=await sb.from('businesses').update(bizPayload).eq('id',bizId);
+        if(bizErr){logLine(`[${i+1}] ERROR updating business: ${b.business_name} — ${bizErr.message}`,'er');errors++;continue;}
+        logLine(`[${i+1}] Updated existing business: ${b.business_name}`,'ok');
+      } else {
+        bizId=self.crypto.randomUUID();
+        bizPayload.id=bizId;
+        const {error:bizErr}=await sb.from('businesses').insert(bizPayload);
+        if(bizErr){logLine(`[${i+1}] ERROR inserting business: ${b.business_name} — ${bizErr.message}`,'er');errors++;continue;}
+      }
+
+      // Insert/update listings
+      const listings=b.listings||[];
+      let lstOk=0;
+      for(const l of listings){
+        if(!l.name)continue;
+        const lt=(l.listing_type==='service')?'service':'product';
+        const normVars=(l.variants||[]).map(v=>typeof v==='string'?v:(v.name?`${v.name}${v.price?' – '+v.price:''}`:'')).filter(Boolean);
+
+        // Check if listing already exists by name under this business
+        const {data:exLst}=await sb.from('listings').select('id').eq('business_id',bizId).eq('name',l.name.trim());
+        const lstPayload = {
+          business_id:bizId,
+          category_id:null,
+          listing_type:lt,
+          name:l.name.trim(),
+          description:l.description||null,
+          price:l.price||null,
+          discount_price:l.discount_price ? String(l.discount_price).trim() : null,
+          has_delivery:l.has_delivery === true,
+          qty_label:l.qty_label ? String(l.qty_label).trim() : 'Quantity',
+          booking_required:l.booking_required === true,
+          is_available:true,
+          is_featured:false,
+          variants:normVars.length?normVars:null,
+          image_url:l.image_url||null,
+          tags:l.tags ? String(l.tags).trim() : null
+        };
+
+        if(exLst&&exLst.length){
+          // Update existing listing
+          const {error:lstErr}=await sb.from('listings').update(lstPayload).eq('id',exLst[0].id);
+          if(lstErr){logLine(`  → ERROR updating listing "${l.name}": ${lstErr.message}`,'er');continue;}
+        } else {
+          // Insert new listing
+          const lstId=self.crypto.randomUUID();
+          lstPayload.id=lstId;
+          lstPayload.business_id=bizId;
+          const {error:lstErr}=await sb.from('listings').insert(lstPayload);
+          if(lstErr){logLine(`  → ERROR inserting listing "${l.name}": ${lstErr.message}`,'er');continue;}
+        }
+        lstOk++;
+      }
+
+      // Insert/update posts
+      const posts=b.posts||[];
+      let postOk=0;
+      for(const p of posts){
+        if(!p.title || !p.content)continue;
+        const mt=(p.media_type==='youtube')?'youtube':'image';
+        
+        // Generate slug from title
+        const slug = p.title
+          .toString()
+          .toLowerCase()
+          .trim()
+          .replace(/\s+/g, '-')
+          .replace(/[^\w\-]+/g, '')
+          .replace(/\-\-+/g, '-')
+          .replace(/^-+/, '')
+          .replace(/-+$/, '');
+
+        // Check if post already exists by slug under this business
+        const {data:exPost}=await sb.from('posts').select('id').eq('business_id',bizId).eq('slug',slug);
+        const postPayload = {
+          business_id:bizId,
+          title:p.title.trim(),
+          slug:slug,
+          content:p.content.trim(),
+          media_url:p.media_url||null,
+          media_type:mt,
+          tags:p.tags ? String(p.tags).trim() : null
+        };
+
+        if(exPost&&exPost.length){
+          // Update existing post
+          const {error:postErr}=await sb.from('posts').update(postPayload).eq('id',exPost[0].id);
+          if(postErr){logLine(`  → ERROR updating post "${p.title}": ${postErr.message}`,'er');continue;}
+        } else {
+          // Insert new post
+          const postId=self.crypto.randomUUID();
+          postPayload.id=postId;
+          const {error:postErr}=await sb.from('posts').insert(postPayload);
+          if(postErr){logLine(`  → ERROR inserting post "${p.title}": ${postErr.message}`,'er');continue;}
+        }
+        postOk++;
+      }
+
+      logLine(`[${i+1}] ✓ ${b.business_name} (${lstOk}/${listings.length} listings, ${postOk}/${posts.length} posts)`,'ok');
+      ok++;
+    }catch(e){
+      logLine(`[${i+1}] EXCEPTION: ${b.business_name} — ${e.message}`,'er');
+      errors++;
+    }
+
+    if(i%5===4)await new Promise(r=>setTimeout(r,200));
+  }
+
+  bar.style.width='100%';
+  status.textContent='Done!';
+  document.getElementById('s3-done').classList.remove('hidden');
+  document.getElementById('s3-msg').textContent=`✓ ${ok} businesses uploaded · ${skipped} skipped · ${errors} errors`;
+  loadDraftedStats();
+}
+
+function resetUpload(){parsedData=[];document.getElementById('json-in').value='';document.getElementById('json-in').className='json-area';document.getElementById('json-err').textContent='';document.getElementById('s3').classList.add('hidden');document.getElementById('s3-done').classList.add('hidden');document.getElementById('prog-log').innerHTML='';document.getElementById('prog-bar').style.width='0%';document.getElementById('s1').classList.remove('hidden');setStep(1);}
+function copyTpl(){navigator.clipboard.writeText(document.getElementById('tpl-text').value);toast('Template copied!');}
+function copyPrompt(){navigator.clipboard.writeText(document.getElementById('tpl-prompt-text').value);toast('Prompt copied!');}
+function setTplTab(t){
+  document.getElementById('tab-tpl-json').classList.toggle('on',t==='json');
+  document.getElementById('tab-tpl-prompt').classList.toggle('on',t==='prompt');
+  document.getElementById('tpl-json-sec').classList.toggle('hidden',t!=='json');
+  document.getElementById('tpl-prompt-sec').classList.toggle('hidden',t!=='prompt');
+}
+
+async function loadDraftedStats(){
+  const {count:total}=await sb.from('businesses').select('id',{count:'exact',head:true});
+  const {count:appr}=await sb.from('businesses').select('id',{count:'exact',head:true}).eq('is_approved',true);
+  const {count:claimed}=await sb.from('businesses').select('id',{count:'exact',head:true}).not('user_id','is',null);
+  const {count:lst}=await sb.from('listings').select('id',{count:'exact',head:true});
+  const setEl=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v||0;};
+  setEl('ds-total',total);setEl('ds-appr',appr);setEl('ds-claimed',claimed);setEl('ds-lst',lst);
+}
+
+async function loadDrafted(){
+  await loadDraftedStats();
+  const aF=document.getElementById('f-area')?.value||'';
+  const sF=document.getElementById('f-status')?.value||'';
+  let q=sb.from('businesses').select('id,business_name,dp_url,is_approved,user_id,whatsapp,created_at,category_id,draft_category,areas(name),categories(name)',{count:'exact'}).order('created_at',{ascending:false}).range(draftPage*PS,(draftPage+1)*PS-1);
+  if(aF)q=q.eq('area_id',aF);
+  if(sF==='pending')q=q.eq('is_approved',false);
+  if(sF==='approved')q=q.eq('is_approved',true);
+  const {data,count}=await q;
+  const list=document.getElementById('draft-list');if(!list)return;list.innerHTML='';
+  if(!data||!data.length){list.innerHTML='<div class="empty">No businesses found.</div>';const pg=document.getElementById('draft-pg');if(pg)pg.style.display='none';return;}
+  data.forEach(b=>{
+    const isClaimed=!!b.user_id;
+    const row=document.createElement('div');row.className='biz-row';
+    const areaName = Array.isArray(b.areas) ? b.areas[0]?.name : b.areas?.name;
+    const catName = Array.isArray(b.categories) ? b.categories[0]?.name : b.categories?.name;
+    
+    row.innerHTML=`
+      <div class="biz-dp">${b.dp_url?`<img src="${getOptimizedImageUrl(b.dp_url,'dp')}"/>`:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a5c3a" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>`}</div>
+      <div class="biz-info">
+        <div class="biz-nm">${b.business_name}</div>
+        <div class="biz-meta">${areaName||''} · ${catName||'No category'} · WA: ${b.whatsapp||'—'}</div>
+        ${b.draft_category?`<div style="font-size:9px;color:#e05a2b;font-weight:bold;margin-top:2px;">Requested Category: ${b.draft_category}</div>`:''}
+      </div>
+      <div class="biz-acts">
+        ${isClaimed?`<span class="badge bg">Claimed</span>`:`<span class="badge by">Unverified</span>`}
+        ${b.is_approved?`<span class="badge bb">Live</span>`:`<button class="btn-appr" onclick="approveBiz('${b.id}',this)">Approve</button>`}
+        <button class="btn-appr" style="background:#e8f5ee;color:#1a5c3a;border:1px solid #1a5c3a;padding:3px 7px;font-size:11px;" onclick="editBizCategory('${b.id}','${b.business_name.replace(/'/g,"\\'")}','${b.category_id||''}','${(b.draft_category||'').replace(/'/g,"\\'")}','draft')">✏️ Category</button>
+        <button class="btn-dng" onclick="deleteBiz('${b.id}',this)">Del</button>
+      </div>`;
+    list.appendChild(row);
+  });
+  const tp=Math.ceil((count||0)/PS);
+  const pg=document.getElementById('draft-pg');
+  if(!pg)return;
+  if(tp<=1){pg.style.display='none';}
+  else{pg.style.display='flex';document.getElementById('dprev').disabled=draftPage===0;document.getElementById('dnext').disabled=draftPage>=tp-1;document.getElementById('dpgi').textContent=(draftPage+1)+' / '+tp;}
+}
+
+function draftPg(d){draftPage+=d;loadDrafted();}
+
+async function approveBiz(id,btn){
+  btn.disabled=true;
+  btn.textContent='...';
+  const {data:b}=await sb.from('businesses').select('business_name,category_id,draft_category,user_id,categories(slug)').eq('id',id).single();
+  if(b && (b.draft_category || !b.category_id)){
+    btn.disabled=false;
+    btn.textContent='Approve';
+    editBizCategory(id, b.business_name, b.category_id, b.draft_category, 'draft', true);
+  } else {
+    const {error}=await sb.from('businesses').update({is_approved:true}).eq('id',id);
+    if(error){toast('Error: '+error.message);btn.disabled=false;btn.textContent='Approve';return;}
+    
+    // Sync driver approval to Leads DB
+    const isDriver = b && b.categories && (b.categories.slug === 'delivery' || (Array.isArray(b.categories) && b.categories[0]?.slug === 'delivery'));
+    if (isDriver && b.user_id) {
+      try {
+        await sbLeads.from('drivers').update({ is_approved: true }).eq('id', b.user_id);
+      } catch(e) { console.error("Sync error:", e); }
+    }
+
+    toast('Approved!');
+    btn.outerHTML='<span class="badge bb">Live</span>';
+  }
+}
+
+async function deleteBiz(id,btn){
+  if(!confirm('Delete business and all listings?'))return;
+  btn.disabled=true;
+
+  // Sync driver deletion to Leads DB if it's a driver
+  try {
+    const { data: b } = await sb.from('businesses').select('user_id, categories(slug)').eq('id', id).maybeSingle();
+    const isDriver = b && b.categories && (b.categories.slug === 'delivery' || (Array.isArray(b.categories) && b.categories[0]?.slug === 'delivery'));
+    if (isDriver && b.user_id) {
+      await sbLeads.from('drivers').delete().eq('id', b.user_id);
+    }
+  } catch(e) { console.error("Sync error:", e); }
+
+  await sb.from('analytics').delete().eq('business_id',id);
+  await sb.from('hearts').delete().eq('business_id',id);
+  await sb.from('ads').delete().eq('business_id',id);
+  await sb.from('business_photos').delete().eq('business_id',id);
+  await sb.from('listings').delete().eq('business_id',id);
+  const {error}=await sb.from('businesses').delete().eq('id',id);
+  if(error){toast('Error: '+error.message);btn.disabled=false;return;}
+  toast('Deleted');
+  btn.closest('.biz-row').remove();
+  loadDraftedStats();
+}
+
+// ===== ADS =====
+let adsCache = [];
+async function renderAds(pg=0){
+  adPg=pg;const c=document.getElementById('tc-ads');
+  c.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div class="slbl2">Ads &amp; Sponsored</div>
+      <div style="display:flex;gap:5px;">
+        <button class="btn-add" onclick="openAdMod('banner')">+ Add Banner</button>
+        <button class="btn-add" style="background:#e05a2b;border-color:#e05a2b;" onclick="openAdMod('sponsor')">+ Add Sponsor</button>
+      </div>
+    </div>
+    <div id="adslist"><div class="shim" style="height:54px;border-radius:var(--r);margin-bottom:5px;"></div></div>`;
+  
+  const [adsRes, analyticsRes] = await Promise.all([
+    sb.from('ads').select('*,businesses(business_name),areas(name),categories(name)',{count:'exact'}).order('created_at',{ascending:false}).range(pg*PS,(pg+1)*PS-1),
+    sb.from('analytics').select('ad_id, event_type').not('ad_id', 'is', null)
+  ]);
+  
+  const {data,count} = adsRes;
+  const analyticsData = analyticsRes.data || [];
+  
+  const counts = {};
+  analyticsData.forEach(e => {
+    if (!counts[e.ad_id]) counts[e.ad_id] = { impressions: 0, clicks: 0 };
+    if (e.event_type === 'ad_impression') counts[e.ad_id].impressions++;
+    else if (e.event_type === 'ad_click') counts[e.ad_id].clicks++;
+  });
+
+  const list=document.getElementById('adslist');if(!list)return;list.innerHTML='';
+  const tp=Math.ceil((count||0)/PS);
+  if(!data||!data.length){list.innerHTML='<div class="empty">No ads yet.</div>';return;}
+  adsCache = data;
+  data.forEach(a=>{
+    const card=document.createElement('div');card.className='adcard';
+    const linkInfo = a.link_url ? `<div style="font-size:9px;color:#1a5c3a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Link: ${a.link_url}</div>` : (a.listing_id ? `<div style="font-size:9px;color:#e05a2b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Listing: ${a.listing_id}</div>` : '');
+    const slotInfo = a.slot_number ? `<div style="font-size:9px;color:#3b82f6;font-weight:bold;">Slot: ${a.slot_number}</div>` : (a.category_id ? `<div style="font-size:9px;color:#8b5cf6;font-weight:bold;">Category: ${(Array.isArray(a.categories) ? a.categories[0]?.name : a.categories?.name) || 'Assigned'}</div>` : '');
+    const adStats = counts[a.id] ? `Impressions: ${counts[a.id].impressions} · Clicks: ${counts[a.id].clicks}` : `Impressions: 0 · Clicks: 0`;
+    const type = a.ad_type === 'banner' ? 'banner' : 'sponsor';
+    const bizName = Array.isArray(a.businesses) ? a.businesses[0]?.business_name : a.businesses?.business_name;
+    const areaName = Array.isArray(a.areas) ? a.areas[0]?.name : a.areas?.name;
+    
+    card.innerHTML=`${a.image_url?`<div class="adthumb"><img src="${getOptimizedImageUrl(a.image_url,'ad')}" alt="ad"/></div>`:`<div class="adthumb"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>`}<div class="adinfo"><div class="adtype">${a.ad_type}</div><div class="adnm">${a.title||bizName||'—'}</div>${linkInfo}${slotInfo}<div class="addts">${areaName||''} · ${a.starts_at?new Date(a.starts_at).toLocaleDateString():'?'} → ${a.ends_at?new Date(a.ends_at).toLocaleDateString():'?'}</div><div style="font-size:10px;color:var(--t3);font-weight:600;margin-top:2px;">${adStats}</div><div style="margin-top:4px;display:flex;gap:4px;">${a.is_active?'<span class="badge bg">Active</span>':'<span class="badge br">Inactive</span>'}<button class="btn-edt" onclick="openAdMod('${type}','${a.id}')">✏️ Edit</button><button class="btn-dng" onclick="delAd('${a.id}')">Delete</button></div></div>`;
+    list.appendChild(card);
+  });
+  if(tp>1){const pgr=document.createElement('div');pgr.className='pgrow';pgr.innerHTML=`<button class="pgb" onclick="renderAds(${pg-1})" ${pg===0?'disabled':''}>← Prev</button><span class="pgi">${pg+1} / ${tp}</span><button class="pgb" onclick="renderAds(${pg+1})" ${pg>=tp-1?'disabled':''}>Next →</button>`;list.appendChild(pgr);}
+}
+
+async function loadBusinessListings(bizId) {
+  const select = document.getElementById('alst-select');
+  select.innerHTML = '<option value="">— Select Listing —</option>';
+  if (!bizId) return;
+  const { data } = await sb.from('listings').select('id,name').eq('business_id',bizId).eq('is_available',true);
+  if (data) {
+    data.forEach(l => {
+      select.appendChild(new Option(l.name, l.id));
+    });
+  }
+}
+
+async function loadAreaCategories(areaId) {
+  const select = document.getElementById('acat-select');
+  select.innerHTML = '<option value="">— Select Category —</option>';
+  if (!areaId) return;
+  
+  const { data: businesses } = await sb.from('businesses').select('category_id').eq('area_id', areaId).not('category_id', 'is', null);
+  const catIds = Array.from(new Set((businesses || []).map(b => b.category_id)));
+  
+  if (catIds.length > 0) {
+    const { data: cats } = await sb.from('categories').select('id, name').in('id', catIds).order('name');
+    if (cats) {
+      cats.forEach(c => {
+        select.appendChild(new Option(c.name, c.id));
+      });
+    }
+  } else {
+    const { data: cats } = await sb.from('categories').select('id, name').order('name');
+    if (cats) {
+      cats.forEach(c => {
+        select.appendChild(new Option(c.name, c.id));
+      });
+    }
+  }
+}
+
+async function openAdMod(type, adId){
+  document.getElementById('aerr').textContent='';
+  document.getElementById('absrch').value='';
+  document.getElementById('abid').value='';
+  document.getElementById('absel').textContent='';
+  document.getElementById('abres').style.display='none';
+  document.getElementById('aimg').value='';
+  document.getElementById('alink').value='';
+  document.getElementById('alstid').value='';
+  document.getElementById('atitle').value='';
+  document.getElementById('astart').value='';
+  document.getElementById('aend').value='';
+  document.getElementById('alst-select').innerHTML='<option value="">— Select Listing —</option>';
+  document.getElementById('acat-select').innerHTML='<option value="">— Select Category —</option>';
+  
+  const titleEl = document.getElementById('admod-title');
+  const typeVal = type || 'banner';
+  document.getElementById('ad-adtype').value = typeVal;
+  
+  if (adId) {
+    titleEl.textContent = 'Edit ' + (typeVal === 'banner' ? 'Banner Ad' : 'Sponsored Slot');
+    document.getElementById('ad-id').value = adId;
+    
+    const ad = adsCache.find(x => x.id === adId);
+    if (ad) {
+      document.getElementById('aarea').value = ad.area_id || '';
+      await loadAreaCategories(ad.area_id);
+      
+      if (ad.business_id) {
+        document.getElementById('abid').value = ad.business_id;
+        const bizName = (Array.isArray(ad.businesses) ? ad.businesses[0]?.business_name : ad.businesses?.business_name) || 'Business';
+        document.getElementById('absrch').value = bizName;
+        document.getElementById('absel').textContent = '✓ ' + bizName;
+        await loadBusinessListings(ad.business_id);
+      }
+      
+      document.getElementById('atitle').value = ad.title || '';
+      document.getElementById('astart').value = ad.starts_at ? new Date(ad.starts_at).toISOString().slice(0, 16) : '';
+      document.getElementById('aend').value = ad.ends_at ? new Date(ad.ends_at).toISOString().slice(0, 16) : '';
+      
+      if (typeVal === 'banner') {
+        document.getElementById('aimg').value = ad.image_url || '';
+        document.getElementById('alink').value = ad.link_url || '';
+        document.getElementById('alstid').value = ad.listing_id || '';
+        document.getElementById('aslot-select').value = ad.slot_number || 'banner_top';
+      } else {
+        document.getElementById('acat-select').value = ad.category_id || '';
+        document.getElementById('alst-select').value = ad.listing_id || '';
+      }
+    }
+  } else {
+    titleEl.textContent = 'Add ' + (typeVal === 'banner' ? 'Banner Ad' : 'Sponsored Slot');
+    document.getElementById('ad-id').value = '';
+    const defaultArea = document.getElementById('aarea').value;
+    if (defaultArea) {
+      await loadAreaCategories(defaultArea);
+    }
+  }
+  
+  if (typeVal === 'banner') {
+    document.getElementById('lbl-biz').textContent = 'Business (Optional link)';
+    document.getElementById('fg-acat').classList.add('hidden');
+    document.getElementById('fg-alst').classList.add('hidden');
+    document.getElementById('fg-aimg').classList.remove('hidden');
+    document.getElementById('fg-alink').classList.remove('hidden');
+    document.getElementById('fg-alstid').classList.remove('hidden');
+    document.getElementById('fg-aslot').classList.remove('hidden');
+  } else {
+    document.getElementById('lbl-biz').textContent = 'Business * (Required)';
+    document.getElementById('fg-acat').classList.remove('hidden');
+    document.getElementById('fg-alst').classList.remove('hidden');
+    document.getElementById('fg-aimg').classList.add('hidden');
+    document.getElementById('fg-alink').classList.add('hidden');
+    document.getElementById('fg-alstid').classList.add('hidden');
+    document.getElementById('fg-aslot').classList.add('hidden');
+  }
+  
+  openMod('admod');
+}
+
+async function srchBiz(v){
+  const res=document.getElementById('abres');
+  if(!v||v.length<2){res.style.display='none';return;}
+  const {data}=await sb.from('businesses').select('id,business_name').ilike('business_name','%'+v+'%').limit(8);
+  res.innerHTML='';
+  if(!data||!data.length){res.style.display='none';return;}
+  res.style.display='block';
+  data.forEach(b=>{
+    const d=document.createElement('div');
+    d.className='bs-item';
+    d.textContent=b.business_name;
+    d.onclick=()=>{
+      document.getElementById('abid').value=b.id;
+      document.getElementById('absel').textContent='✓ '+b.business_name;
+      document.getElementById('absrch').value=b.business_name;
+      res.style.display='none';
+      loadBusinessListings(b.id);
+    };
+    res.appendChild(d);
+  });
+}
+
+async function saveAd(){
+  const adId = document.getElementById('ad-id').value;
+  const adType = document.getElementById('ad-adtype').value;
+  const areaId = document.getElementById('aarea').value;
+  const bizId = document.getElementById('abid').value || null;
+  const title = document.getElementById('atitle').value.trim() || null;
+  const start = document.getElementById('astart').value;
+  const end = document.getElementById('aend').value;
+  const err = document.getElementById('aerr');
+  err.textContent = '';
+  
+  if (!areaId || !start || !end) {
+    err.textContent = 'Area, start and end required.';
+    return;
+  }
+  
+  let payload = {
+    area_id: areaId,
+    business_id: bizId,
+    title: title,
+    starts_at: new Date(start).toISOString(),
+    ends_at: new Date(end).toISOString(),
+    is_active: true
+  };
+  
+  if (adType === 'banner') {
+    const imgUrl = document.getElementById('aimg').value.trim();
+    if (!imgUrl) {
+      err.textContent = 'Image URL is required for banner ads.';
+      return;
+    }
+    payload.ad_type = 'banner';
+    payload.image_url = imgUrl;
+    payload.link_url = document.getElementById('alink').value.trim() || null;
+    payload.listing_id = document.getElementById('alstid').value.trim() || null;
+    payload.slot_number = document.getElementById('aslot-select').value;
+    payload.category_id = null;
+  } else {
+    if (!bizId) {
+      err.textContent = 'Business is required for sponsored ads.';
+      return;
+    }
+    const catId = document.getElementById('acat-select').value;
+    if (!catId) {
+      err.textContent = 'Category is required for sponsored ads.';
+      return;
+    }
+    const listingId = document.getElementById('alst-select').value || null;
+    
+    payload.ad_type = 'sponsored_product';
+    payload.image_url = null;
+    payload.link_url = null;
+    payload.listing_id = listingId;
+    payload.slot_number = null;
+    payload.category_id = catId;
+  }
+  
+  let error;
+  if (adId) {
+    const { error: updErr } = await sb.from('ads').update(payload).eq('id', adId);
+    error = updErr;
+  } else {
+    payload.id = self.crypto.randomUUID();
+    const { error: insErr } = await sb.from('ads').insert(payload);
+    error = insErr;
+  }
+  
+  if (error) {
+    err.textContent = 'Error: ' + error.message;
+    return;
+  }
+  
+  toast('Ad saved!');
+  closeMod('admod');
+  renderAds(adPg);
+}
+
+async function delAd(id){if(!confirm('Delete ad?'))return;await sb.from('ads').delete().eq('id',id);toast('Deleted');renderAds(adPg);}
+
+// ===== SETTINGS (Areas + Categories) =====
+async function renderCfg(aPg=0,cPg=0){
+  areaPg=aPg;catPg=cPg;
+  const c=document.getElementById('tc-cfg');
+  c.innerHTML=`
+    <div class="slbl2">Add New City / Area</div>
+    <div style="display:flex;gap:5px;margin-bottom:10px;">
+      <input type="text" id="naname" placeholder="Area name" style="flex:1;"/>
+      <button class="btn-add" onclick="addArea()">Add</button>
+    </div>
+    <div class="slbl2">Areas</div>
+    <div id="areaslist"><div class="shim" style="height:34px;border-radius:var(--r);margin-bottom:4px;"></div></div>
+    <div class="slbl2" style="margin-top:12px;">Categories
+      <span style="font-size:10px;font-weight:400;color:var(--t3);margin-left:6px;text-transform:none;letter-spacing:0;">Partners can create new ones while adding listings</span>
+    </div>
+    <div id="catslist"></div>`;
+
+  // Areas
+  const {data:ad,count:ac}=await sb.from('areas').select('*',{count:'exact'}).order('name').range(aPg*PS,(aPg+1)*PS-1);
+  const atp=Math.ceil((ac||0)/PS);
+  const al=document.getElementById('areaslist');if(al){
+    al.innerHTML='';
+    (ad||[]).forEach(a=>{const r=document.createElement('div');r.className='arow';r.innerHTML=`<div><div class="anm">${a.name}</div><div class="ast">${a.is_active?'Active':'Inactive'} · ${a.slug}</div></div><div class="aact"><button class="btn-sm" onclick="togArea('${a.id}',${a.is_active})">${a.is_active?'Deactivate':'Activate'}</button><button class="btn-dng" onclick="delArea('${a.id}','${a.name.replace(/'/g,"\\'")}')">Delete</button></div>`;al.appendChild(r);});
+    if(atp>1){const pgr=document.createElement('div');pgr.className='pgrow';pgr.innerHTML=`<button class="pgb" onclick="renderCfg(${aPg-1},${cPg})" ${aPg===0?'disabled':''}>← Prev</button><span class="pgi">${aPg+1} / ${atp}</span><button class="pgb" onclick="renderCfg(${aPg+1},${cPg})" ${aPg>=atp-1?'disabled':''}>Next →</button>`;al.appendChild(pgr);}
+  }
+
+  // Categories
+  const {data:cats,count:cc}=await sb.from('categories').select('*',{count:'exact'}).order('name').range(cPg*PS,(cPg+1)*PS-1);
+  
+  // Scalable category count query
+  const catIds=(cats||[]).map(cat=>cat.id);
+  const countsPromises=catIds.map(async (cid)=>{
+    const {count}=await sb.from('listings').select('id,businesses!inner(category_id)',{count:'exact',head:true}).eq('businesses.category_id',cid);
+    return {id:cid,count:count||0};
+  });
+  const countsResults=await Promise.all(countsPromises);
+  const cntMap={};countsResults.forEach(r=>{cntMap[r.id]=r.count;});
+  
+  const ctp=Math.ceil((cc||0)/PS);
+  const cl=document.getElementById('catslist');if(cl){
+    cl.innerHTML='';
+    if(!cats||!cats.length){cl.innerHTML='<div style="font-size:11px;color:var(--t3);padding:8px 0;">No categories yet.</div>';}
+    (cats||[]).forEach(cat=>{const count=cntMap[cat.id]||0;const r=document.createElement('div');r.className='crow';r.innerHTML=`<div class="cnm">${cat.name}</div><div class="ccnt">${count} listing${count!==1?'s':''}</div><div class="cact"><button class="btn-edt" onclick="openCatEdit('${cat.id}','${cat.name.replace(/'/g,"\\'")}',${count})">✏️ Rename</button><button class="btn-mrg" onclick="openMerge('${cat.id}','${cat.name.replace(/'/g,"\\'")}')">Merge</button>${count===0?`<button class="btn-dng" onclick="delCat('${cat.id}','${cat.name.replace(/'/g,"\\'")}')">Del</button>`:`<button class="btn-sm" disabled style="opacity:0.4;">Del</button>`}</div>`;cl.appendChild(r);});
+    if(ctp>1){const pgr=document.createElement('div');pgr.className='pgrow';pgr.innerHTML=`<button class="pgb" onclick="renderCfg(${aPg},${cPg-1})" ${cPg===0?'disabled':''}>← Prev</button><span class="pgi">${cPg+1} / ${ctp}</span><button class="pgb" onclick="renderCfg(${aPg},${cPg+1})" ${cPg>=ctp-1?'disabled':''}>Next →</button>`;cl.appendChild(pgr);}
+  }
+}
+
+async function addArea(){const name=document.getElementById('naname').value.trim();if(!name)return;const slug=name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');const {error}=await sb.from('areas').insert({name,slug,is_active:false});if(error){toast('Error: '+error.message);return;}toast('Area added (inactive)');document.getElementById('naname').value='';await loadAreas();renderCfg(areaPg,catPg);}
+async function togArea(id,isA){await sb.from('areas').update({is_active:!isA}).eq('id',id);toast('Updated');await loadAreas();renderCfg(areaPg,catPg);}
+async function delArea(id,name){if(!confirm(`Delete area "${name}"? This cannot be undone.`))return;const {error}=await sb.from('areas').delete().eq('id',id);if(error){toast('Error: '+error.message);return;}toast('Area deleted');await loadAreas();renderCfg(areaPg,catPg);}
+
+function openCatEdit(id,name,count){document.getElementById('cat-id').value=id;document.getElementById('cat-name').value=name;document.getElementById('cat-err').textContent='';const w=document.getElementById('catmod-warn');if(count>0){w.classList.remove('hidden');w.textContent=`This category has ${count} listing${count!==1?'s':''} linked. Renaming updates everywhere.`;}else{w.classList.add('hidden');}document.getElementById('catmod-title').textContent='Rename Category';openMod('catmod');}
+async function saveCatEdit(){const id=document.getElementById('cat-id').value,name=document.getElementById('cat-name').value.trim(),err=document.getElementById('cat-err');err.textContent='';if(!name){err.textContent='Name cannot be empty.';return;}const {data:dup}=await sb.from('categories').select('id').ilike('name',name).neq('id',id);if(dup&&dup.length){err.textContent='Name already exists.';return;}const {error}=await sb.from('categories').update({name}).eq('id',id);if(error){err.textContent='Error: '+error.message;return;}toast('Renamed!');closeMod('catmod');renderCfg(areaPg,catPg);}
+async function openMerge(fromId,fromName){document.getElementById('merge-from-id').value=fromId;document.getElementById('merge-from-name').textContent=fromName;document.getElementById('merge-err').textContent='';const {data:cats}=await sb.from('categories').select('id,name').neq('id',fromId).order('name');const sel=document.getElementById('merge-into-id');sel.innerHTML='<option value="">— select target —</option>';(cats||[]).forEach(c=>sel.appendChild(new Option(c.name,c.id)));openMod('mergemod');}
+async function doMerge(){const fromId=document.getElementById('merge-from-id').value,intoId=document.getElementById('merge-into-id').value,err=document.getElementById('merge-err');err.textContent='';if(!intoId){err.textContent='Select a target category.';return;}const {error:e1}=await sb.from('businesses').update({category_id:intoId}).eq('category_id',fromId);if(e1){err.textContent='Failed: '+e1.message;return;}const {error:e2}=await sb.from('categories').delete().eq('id',fromId);if(e2){err.textContent='Businesses moved but category delete failed: '+e2.message;return;}toast('Merged!');closeMod('mergemod');renderCfg(areaPg,catPg);}
+async function delCat(id,name){const {count}=await sb.from('businesses').select('id',{count:'exact',head:true}).eq('category_id',id);if(count>0){toast(`Cannot delete — ${count} business(es) still use this.`);return;}if(!confirm(`Delete "${name}"?`))return;const {error}=await sb.from('categories').delete().eq('id',id);if(error){toast('Error: '+error.message);return;}toast('Deleted');renderCfg(areaPg,catPg);}
+
+let currentEditingBizSource = 'biz';
+let approveOnSaveCategory = false;
+
+async function editBizCategory(bizId, bizName, currentCategoryId, draftCategory, source, shouldApprove = false) {
+  currentEditingBizSource = source;
+  approveOnSaveCategory = shouldApprove;
+  
+  const titleEl = document.querySelector('#bizcatmod .mtitle');
+  const btnEl = document.querySelector('#bizcatmod .btn-pri');
+  if (shouldApprove) {
+    if (titleEl) titleEl.textContent = 'Assign Category & Approve';
+    if (btnEl) btnEl.textContent = 'Assign & Approve →';
+  } else {
+    if (titleEl) titleEl.textContent = 'Assign Business Category';
+    if (btnEl) btnEl.textContent = 'Assign Category';
+  }
+  
+  document.getElementById('bizcat-bizid').value = bizId;
+  document.getElementById('bizcatmod-biznm').textContent = `Business: ${bizName}`;
+  document.getElementById('bizcat-err').textContent = '';
+  document.getElementById('bizcat-newname').value = draftCategory || '';
+  
+  const select = document.getElementById('bizcat-select');
+  select.innerHTML = '<option value="">— Select Category —</option>';
+  
+  const { data: cats } = await sb.from('categories').select('id,name').order('name');
+  if (cats) {
+    cats.forEach(c => {
+      const opt = new Option(c.name, c.id);
+      if (c.id === currentCategoryId) {
+        opt.selected = true;
+      }
+      select.appendChild(opt);
+    });
+  }
+  
+  openMod('bizcatmod');
+}
+
+async function saveBizCategory() {
+  const bizId = document.getElementById('bizcat-bizid').value;
+  const selectId = document.getElementById('bizcat-select').value;
+  const newName = document.getElementById('bizcat-newname').value.trim();
+  const err = document.getElementById('bizcat-err');
+  err.textContent = '';
+  
+  let targetCategoryId = selectId || null;
+  
+  if (newName) {
+    const slug = newName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const { data: existing } = await sb.from('categories').select('id').ilike('name', newName).limit(1);
+    
+    if (existing && existing.length > 0) {
+      targetCategoryId = existing[0].id;
+    } else {
+      const generatedCatId = self.crypto.randomUUID();
+      const { error: insErr } = await sb.from('categories').insert({
+        id: generatedCatId,
+        name: newName,
+        slug: slug
+      });
+      if (insErr) {
+        err.textContent = 'Category creation failed: ' + insErr.message;
+        return;
+      }
+      targetCategoryId = generatedCatId;
+    }
+  }
+  
+  if (!targetCategoryId) {
+    err.textContent = 'Please choose an existing category or enter a name for a new one.';
+    return;
+  }
+  
+  const updatePayload = {
+    category_id: targetCategoryId,
+    draft_category: null
+  };
+  if (approveOnSaveCategory) {
+    updatePayload.is_approved = true;
+  }
+  
+  const { error } = await sb.from('businesses').update(updatePayload).eq('id', bizId);
+  
+  if (error) {
+    err.textContent = 'Failed to assign category: ' + error.message;
+    return;
+  }
+
+  if (approveOnSaveCategory) {
+    // Check if category is delivery
+    const { data: catData } = await sb.from('categories').select('slug').eq('id', targetCategoryId).maybeSingle();
+    if (catData && catData.slug === 'delivery') {
+      const { data: bData } = await sb.from('businesses').select('user_id').eq('id', bizId).maybeSingle();
+      if (bData && bData.user_id) {
+        try {
+          await sbLeads.from('drivers').update({ is_approved: true }).eq('id', bData.user_id);
+        } catch(e) { console.error("Sync error:", e); }
+      }
+    }
+  }
+  
+  toast(approveOnSaveCategory ? 'Category assigned and business approved!' : 'Category updated!');
+  closeMod('bizcatmod');
+  
+  if (currentEditingBizSource === 'biz') {
+    renderBiz(document.getElementById('stfilt')?.value || '', bizPg);
+  } else {
+    loadDrafted();
+  }
+}
+
+// ===== INIT =====
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session&&sessionStorage.getItem('mp_mgr')==='1'&&MGRS.includes(session.user.email)){
+    cu=session.user;
+    document.getElementById('page-login').classList.add('hidden');
+    document.getElementById('page-dash').classList.remove('hidden');
+    await loadAreas();dTab('ov',document.querySelector('.tab'));
+  }
+}
+window.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>

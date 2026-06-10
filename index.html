@@ -241,6 +241,39 @@ body::before{content:'';position:fixed;top:-50px;right:-50px;width:170px;height:
   </div>
 </div>
 
+<!-- ADD LISTINGS JSON MODAL -->
+<div id="addlistjsonmod" class="mo hidden">
+  <div class="mbox" style="max-width:550px;">
+    <button class="mclose" onclick="closeMod('addlistjsonmod')">×</button>
+    <div class="mtitle" id="addlistjson-title">Add Listings (JSON)</div>
+    <input type="hidden" id="addlistjson-bizid"/>
+    <p style="font-size:11px;color:var(--t2);margin-bottom:8px;">Paste a JSON array of listings to add directly to this business. Images are optional but recommended.</p>
+    
+    <div class="fg">
+      <label>JSON Data [ { "name": "...", "price": "..." } ]</label>
+      <textarea id="addlistjson-text" placeholder='[
+  {
+    "name": "Basmati Rice 5kg",
+    "price": "320",
+    "discount_price": "290",
+    "description": "Premium quality Dehraduni basmati\n- 100% organic\n- Long grain",
+    "listing_type": "product",
+    "has_delivery": true,
+    "qty_label": "Quantity",
+    "image_url": "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400"
+  }
+]' style="width:100%;height:180px;font-family:monospace;font-size:11px;padding:8px;border:1px solid var(--bd);border-radius:var(--rs);resize:vertical;"></textarea>
+    </div>
+    
+    <div id="addlistjson-err" class="err"></div>
+    
+    <div class="mftr">
+      <button class="btn-pri" onclick="saveListingsJson()">Add Listings</button>
+      <button class="btn-sm" onclick="closeMod('addlistjsonmod')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- TEMPLATE MODAL -->
 <div id="tpl-modal" class="mo hidden">
   <div class="mbox" style="max-width:550px;">
@@ -551,7 +584,8 @@ async function renderBiz(st='',pg=0){
       </div>
       <div class="bact">
         ${!b.is_approved?`<button class="btn-appr" onclick="apprBiz('${b.id}','${st}')">Approve</button>`:''}
-        ${b.is_active?`<button class="btn-dng" onclick="disBiz('${b.id}','${st}')">Disable</button>`:`<button class="btn-ena" onclick="enBiz('${b.id}','${st}')">Enable</button>`}
+        ${b.is_active?`<button class="btn-dng" onclick="disBiz('${b.id}','st')">Disable</button>`:`<button class="btn-ena" onclick="enBiz('${b.id}','${st}')">Enable</button>`}
+        <button class="btn-appr" style="background:#e8f5ee;color:#1a5c3a;border:1px solid #1a5c3a;" onclick="openAddListingsJson('${b.id}','${b.business_name.replace(/'/g,"\\'").replace(/"/g,'\\"')}')">+ Listings JSON</button>
         <button class="btn-appr" style="background:#e8f5ee;color:#1a5c3a;border:1px solid #1a5c3a;" onclick="editBizCategory('${b.id}','${b.business_name.replace(/'/g,"\\'")}','${b.category_id||''}','${(b.draft_category||'').replace(/'/g,"\\'")}','biz')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:2px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Category</button>
         <button class="btn-sm" onclick="renBiz('${b.id}','${b.business_name.replace(/'/g,"\\'")}','${st}')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:2px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Rename</button>
         <button class="btn-dng" onclick="delBiz('${b.id}','${st}')">Delete</button>
@@ -1408,6 +1442,66 @@ async function editBizCategory(bizId, bizName, currentCategoryId, draftCategory,
   }
   
   openMod('bizcatmod');
+}
+
+async function openAddListingsJson(bizId, bizName) {
+  document.getElementById('addlistjson-bizid').value = bizId;
+  document.getElementById('addlistjson-title').textContent = `Add Listings to ${bizName}`;
+  document.getElementById('addlistjson-text').value = '';
+  document.getElementById('addlistjson-err').textContent = '';
+  openMod('addlistjsonmod');
+}
+
+async function saveListingsJson() {
+  const bizId = document.getElementById('addlistjson-bizid').value;
+  const raw = document.getElementById('addlistjson-text').value.trim();
+  const errEl = document.getElementById('addlistjson-err');
+  errEl.textContent = '';
+  if (!raw) {
+    errEl.textContent = 'Please enter JSON data.';
+    return;
+  }
+  let items = [];
+  try {
+    items = JSON.parse(raw);
+  } catch(e) {
+    errEl.textContent = 'Invalid JSON: ' + e.message;
+    return;
+  }
+  if (!Array.isArray(items)) {
+    errEl.textContent = 'JSON must be an array of listings [ { ... }, { ... } ]';
+    return;
+  }
+  
+  const toInsert = items.map(item => {
+    const priceStr = item.price ? String(item.price).replace(/[₹\?]/g, '').trim() : null;
+    const discPriceStr = item.discount_price ? String(item.discount_price).replace(/[₹\?]/g, '').trim() : null;
+    
+    return {
+      id: self.crypto.randomUUID(),
+      business_id: bizId,
+      name: item.name,
+      description: item.description || null,
+      price: priceStr ? `₹${priceStr}` : null,
+      discount_price: discPriceStr ? `₹${discPriceStr}` : null,
+      image_url: item.image_url || null,
+      variants: item.variants || null,
+      has_delivery: item.has_delivery !== undefined ? !!item.has_delivery : true,
+      qty_label: item.qty_label || 'Quantity',
+      booking_required: !!item.booking_required,
+      listing_type: item.listing_type || 'product',
+      is_available: true
+    };
+  });
+  
+  const { data, error } = await sb.from('listings').insert(toInsert);
+  if (error) {
+    errEl.textContent = 'Insert Error: ' + error.message;
+    return;
+  }
+  toast(`Successfully added ${toInsert.length} listings!`);
+  closeMod('addlistjsonmod');
+  renderBiz(document.getElementById('stfilt')?.value || '', bizPg);
 }
 
 async function saveBizCategory() {
